@@ -7,6 +7,7 @@ Configuración inicial de flujo Codex + GitHub Issues.
 Ninguno.
 
 ## Cambios recientes
+- Se agregaron templates de GitHub Issues, Pull Request y documentacion de labels para el flujo Codex.
 - Se creó estructura de reglas para Codex.
 - Se definieron sistemas protegidos.
 - Se definió prioridad de estados del jugador.
