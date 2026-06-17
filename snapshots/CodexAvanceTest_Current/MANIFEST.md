@@ -21,3 +21,10 @@
 | StarterPlayerScripts/SlingshotAnimateGuard.client.lua | game.StarterPlayer.StarterPlayerScripts.SlingshotAnimateGuard | LocalScript | 257 | encontrado |  |
 | StarterPlayerScripts/PasturePromptClient.client.lua | game.StarterPlayer.StarterPlayerScripts.PasturePromptClient | LocalScript | 180 | encontrado |  |
 | ServerScriptService/DragonRaidAutoTest.server.lua | game.ServerScriptService.DragonRaidAutoTest | Script | 9 | encontrado | opcional, Disabled=true |
+| ServerScriptService/Pasture/Main.lua | game.ServerScriptService.Pasture.Main | Script/Module | 155 | encontrado | exportado en snapshot |
+| ServerScriptService/Pasture/Monitor.lua | game.ServerScriptService.Pasture.Monitor | Script/Module | 345 | encontrado | exportado en snapshot |
+| ServerScriptService/Pasture/M/Cfg.lua | game.ServerScriptService.Pasture.M.Cfg | Script/Module | 297 | encontrado | exportado en snapshot |
+| ServerScriptService/Pasture/M/Rand.lua | game.ServerScriptService.Pasture.M.Rand | Script/Module | 28 | encontrado | exportado en snapshot |
+| ServerScriptService/Pasture/M/House.lua | game.ServerScriptService.Pasture.M.House | Script/Module | 163 | encontrado | exportado en snapshot |
+| ServerScriptService/Pasture/M/Flock.lua | game.ServerScriptService.Pasture.M.Flock | Script/Module | 369 | encontrado | exportado en snapshot |
+| ServerScriptService/Pasture/M/Sheep.lua | game.ServerScriptService.Pasture.M.Sheep | Script/Module | 1791 | encontrado | exportado en snapshot |
