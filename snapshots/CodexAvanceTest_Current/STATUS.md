@@ -4,7 +4,7 @@ Fecha: 2026-06-16 21:17:34 -05:00
 Snapshot: CodexAvanceTest_Current
 
 Sistemas activos:
-- Pasture v1.2 (Scripts exportados a snapshot)
+- Pasture v1.2 (Scripts exportados a snapshot, SheepPerFlock ajustado a 2)
 - Homestead v4 ChickenCarry
 - InventoryService
 - EggService

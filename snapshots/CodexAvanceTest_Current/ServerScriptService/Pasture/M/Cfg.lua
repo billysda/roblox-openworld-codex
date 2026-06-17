@@ -36,7 +36,7 @@ Cfg.Collision = {
 	SheepCollideWithPlayers = false,
 }
 
-Cfg.SheepPerFlock = 10
+Cfg.SheepPerFlock = 2
 Cfg.SpawnYOffset = 3
 
 Cfg.Radius = 15

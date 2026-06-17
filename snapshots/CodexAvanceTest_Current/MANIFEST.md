@@ -23,7 +23,7 @@
 | ServerScriptService/DragonRaidAutoTest.server.lua | game.ServerScriptService.DragonRaidAutoTest | Script | 9 | encontrado | opcional, Disabled=true |
 | ServerScriptService/Pasture/Main.lua | game.ServerScriptService.Pasture.Main | Script/Module | 155 | encontrado | exportado en snapshot |
 | ServerScriptService/Pasture/Monitor.lua | game.ServerScriptService.Pasture.Monitor | Script/Module | 345 | encontrado | exportado en snapshot |
-| ServerScriptService/Pasture/M/Cfg.lua | game.ServerScriptService.Pasture.M.Cfg | Script/Module | 297 | encontrado | exportado en snapshot |
+| ServerScriptService/Pasture/M/Cfg.lua | game.ServerScriptService.Pasture.M.Cfg | Script/Module | 64 | encontrado | exportado en snapshot, SheepPerFlock ajustado a 2 |
 | ServerScriptService/Pasture/M/Rand.lua | game.ServerScriptService.Pasture.M.Rand | Script/Module | 28 | encontrado | exportado en snapshot |
 | ServerScriptService/Pasture/M/House.lua | game.ServerScriptService.Pasture.M.House | Script/Module | 163 | encontrado | exportado en snapshot |
 | ServerScriptService/Pasture/M/Flock.lua | game.ServerScriptService.Pasture.M.Flock | Script/Module | 369 | encontrado | exportado en snapshot |
