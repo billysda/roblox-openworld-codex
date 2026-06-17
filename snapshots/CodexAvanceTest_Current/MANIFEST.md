@@ -28,3 +28,4 @@
 | ServerScriptService/Pasture/M/House.lua | game.ServerScriptService.Pasture.M.House | Script/Module | 163 | encontrado | exportado en snapshot |
 | ServerScriptService/Pasture/M/Flock.lua | game.ServerScriptService.Pasture.M.Flock | Script/Module | 369 | encontrado | exportado en snapshot |
 | ServerScriptService/Pasture/M/Sheep.lua | game.ServerScriptService.Pasture.M.Sheep | Script/Module | 1791 | encontrado | exportado en snapshot |
+| ServerScriptService/Pasture/M/GrazingService.lua | game.ServerScriptService.Pasture.M.GrazingService | ModuleScript | 262 | creado | exportado en snapshot, Pastoreo v0 |

@@ -875,3 +875,6 @@ Estado relevante para huevos como municion:
 - La fuente actual de municion documentada sigue siendo `InventoryService.Egg` con espejo/atributo `SlingshotEggAmmo`.
 - No se creo `EggAmmo`, `EggStorage`, `src` ni Rojo.
 - No se modifico gameplay ni scripts dentro de Studio.
+
+## Actualizacion 2026-06-16
+Se agrego Pasture.M.GrazingService para el sistema de pastoreo v0, usando atributos de Player.

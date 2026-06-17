@@ -95,6 +95,8 @@ ensureRemote(remoteFolder, "RequestStats")
 ensureRemote(remoteFolder, "StatsResponse")
 
 local houseService = House.new(housesFolder, runtime, sheepTemplate)
+local GrazingService = require(M:WaitForChild("GrazingService"))
+local grazingService = GrazingService.new(houseService)
 
 local lastWhistle = {}
 
@@ -149,6 +151,7 @@ RunService.Heartbeat:Connect(function(dt)
 	if aiTimer >= aiInterval then
 		aiTimer = 0
 		houseService:StepAI(os.clock())
+		grazingService:Step(os.clock())
 	end
 end)
 

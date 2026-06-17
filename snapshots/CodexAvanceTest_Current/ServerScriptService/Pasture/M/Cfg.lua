@@ -294,4 +294,32 @@ Cfg.Sequences = {
 	EndFade = 0.25,
 }
 
+Cfg.Grazing = {
+	Enabled = true,
+
+	RuntimeFolder = "PastureGrazingRuntime",
+
+	ZoneRadius = 18,
+	ZoneHeight = 0.15,
+	ZoneDistanceMin = 55,
+	ZoneDistanceMax = 90,
+
+	GrassGoal = 100,
+	GrassPerSecond = 8,
+
+	RequireAllSheep = true,
+	MinSheepInside = 2,
+
+	CheckInterval = 0.25,
+	MarkerUpdateInterval = 0.5,
+
+	XPPerZone = 25,
+	XPToNextLevel = 100,
+
+	ZoneYOffset = 0.08,
+	LabelHeight = 8,
+
+	Debug = true,
+}
+
 return Cfg

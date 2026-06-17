@@ -7,6 +7,7 @@ ConfiguraciÃ³n inicial de flujo Codex + GitHub Issues.
 CODEX_QUEUE tareas 1-47.
 
 ## Cambios recientes
+- 2026-06-16 21:58 -05:00: Se implemento Pastoreo por zonas v0 (`GrazingService`) sin alterar `Flock.lua` ni `Sheep.lua`.
 - 2026-06-16 21:50 -05:00: Se ajusto Cfg.SheepPerFlock a 2 en Pasture.
 - 2026-06-04 03:38 -05:00: Se completaron tareas seguras 45-47 de `CODEX_QUEUE.md`. Se documento que `HomeCfg.Debug.Slingshot` ayuda con `NoAmmo` y disparos exitosos, pero no registra todas las razones de rechazo de `FireResult`; no sustituye validaciones de ammo/remotes. No se modifico Roblox Studio ni scripts.
 - 2026-06-04 03:36 -05:00: Se completaron tareas seguras 42-44 de `CODEX_QUEUE.md`. Se documento que `SlingshotController` actualiza `SlingshotEggAmmo` y proyectil local desde `FireResult`, pero no expone ni registra `FireResult.Reason`; esto puede dificultar QA sin observacion adicional. No se modifico Roblox Studio ni scripts.
