@@ -318,6 +318,12 @@ Cfg.Grazing = {
 
 	ZoneYOffset = 0.08,
 	LabelHeight = 8,
+	
+	ZonePulseInterval = 2.5,
+	ZonePulseDuration = 0.45,
+	ZoneTransparencyIdle = 0.78,
+	ZoneTransparencyPulse = 0.45,
+	ZoneTransparencyActive = 0.38,
 
 	Debug = true,
 }

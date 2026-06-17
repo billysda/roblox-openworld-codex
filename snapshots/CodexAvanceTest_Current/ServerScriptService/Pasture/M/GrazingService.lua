@@ -2,6 +2,7 @@ local GrazingService = {}
 GrazingService.__index = GrazingService
 
 local Cfg = require(script.Parent.Cfg)
+local TweenService = game:GetService("TweenService")
 
 function GrazingService.new(houseService)
 	local self = setmetatable({}, GrazingService)
@@ -148,6 +149,22 @@ function GrazingService:_handlePlayerZone(player, house, flock, dt)
 		
 		player:SetAttribute("PastureGrassEaten", progress)
 	end
+	
+	if insideCount > 0 then
+		zoneData.ZonePart.Transparency = Cfg.Grazing.ZoneTransparencyActive
+	else
+		local now = os.clock()
+		if not zoneData.LastPulse then zoneData.LastPulse = 0 end
+		if now - zoneData.LastPulse >= Cfg.Grazing.ZonePulseInterval then
+			zoneData.LastPulse = now
+			zoneData.ZonePart.Transparency = Cfg.Grazing.ZoneTransparencyIdle
+			local ti = TweenInfo.new(Cfg.Grazing.ZonePulseDuration, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, 0, true)
+			local t = TweenService:Create(zoneData.ZonePart, ti, {Transparency = Cfg.Grazing.ZoneTransparencyPulse})
+			t:Play()
+		elseif now - zoneData.LastPulse > Cfg.Grazing.ZonePulseDuration * 2 + 0.1 then
+			zoneData.ZonePart.Transparency = Cfg.Grazing.ZoneTransparencyIdle
+		end
+	end
 end
 
 function GrazingService:_createZoneForPlayer(player, house, flock)
@@ -229,8 +246,11 @@ function GrazingService:_createZoneForPlayer(player, house, flock)
 	return {
 		Folder = folder,
 		Position = zonePos,
+		ZonePart = zonePart,
 		Anchor = anchor,
-		TextLabel = textLabel
+		TextLabel = textLabel,
+		BGui = bgui,
+		LastPulse = 0
 	}
 end
 
@@ -253,8 +273,15 @@ function GrazingService:_updateMarkers()
 			local lvl = player:GetAttribute("PastureFlockLevel") or 1
 			local xp = player:GetAttribute("PastureFlockXP") or 0
 			
-			zoneData.TextLabel.Text = string.format("Pasto consumido: %d/%d\nOvejas: %d/%d\nRebaño Nv.%d  XP %d/%d", 
+			zoneData.TextLabel.Text = string.format("Pasto consumido: %d/%d\nOvejas alimentándose: %d/%d\nRebaño Nv.%d  XP %d/%d", 
 				eaten, goal, inside, req, lvl, xp, Cfg.Grazing.XPToNextLevel)
+				
+			local distToZone = (player.Character and player.Character.PrimaryPart) and (player.Character.PrimaryPart.Position - zoneData.Position).Magnitude or math.huge
+			if distToZone <= 80 or inside > 0 or eaten > 0 then
+				zoneData.BGui.Enabled = true
+			else
+				zoneData.BGui.Enabled = false
+			end
 		end
 	end
 end
