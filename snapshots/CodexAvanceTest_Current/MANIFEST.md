@@ -20,4 +20,4 @@
 | StarterPlayerScripts/SlingshotController.client.lua | game.StarterPlayer.StarterPlayerScripts.SlingshotController | LocalScript | 1941 | encontrado |  |
 | StarterPlayerScripts/SlingshotAnimateGuard.client.lua | game.StarterPlayer.StarterPlayerScripts.SlingshotAnimateGuard | LocalScript | 257 | encontrado |  |
 | StarterPlayerScripts/PasturePromptClient.client.lua | game.StarterPlayer.StarterPlayerScripts.PasturePromptClient | LocalScript | 180 | encontrado |  |
-| ServerScriptService/DragonRaidAutoTest.server.lua | game.ServerScriptService.DragonRaidAutoTest | Script | 9 | encontrado | opcional |
+| ServerScriptService/DragonRaidAutoTest.server.lua | game.ServerScriptService.DragonRaidAutoTest | Script | 9 | encontrado | opcional, Disabled=true |

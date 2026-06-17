@@ -14,7 +14,7 @@ Sistemas activos:
 - SlingshotAnimateGuard
 - Slingshot Fire v0 con Egg como municion
 - DragonRaidService existe
-- DragonRaidAutoTest existe
+- DragonRaidAutoTest existe pero queda Disabled=true
 
 Ultimo comportamiento confirmado:
 - recoger Egg suma InventoryService.Egg
@@ -25,7 +25,7 @@ Ultimo comportamiento confirmado:
 - Storage bloquea Honda
 
 Riesgos:
-- DragonRaidAutoTest puede ejecutarse automaticamente
+- DragonRaidService se conserva, pero no se ejecuta automaticamente
 - Fire v0 no tiene dano todavia
 - Honda sigue siendo Tool normal con Handle/RightGrip
 - El repo todavia es snapshot, no fuente Rojo

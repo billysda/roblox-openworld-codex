@@ -96,4 +96,4 @@ eports/mount_system_diagnosis.md, scripts/ServerScriptService/*, scripts/Starter
 - Estado real documentado: el disparo con huevos ya existe como Fire v0 usando `InventoryService.Egg`, `SlingshotService`, `SlingshotController`, `SlingshotAnimateGuard` y atributo `SlingshotEggAmmo`.
 - Sistemas encontrados: Pasture v1.2, Homestead v4 ChickenCarry, InventoryService, EggService, StorageService, SlingshotService, SlingshotController, SlingshotAnimateGuard, DragonRaidService y DragonRaidAutoTest.
 - Que falta probar: no se hizo Play en esta tarea; falta prueba manual de recoger Egg, Storage, disparo Honda, consumo de Egg, bloqueos por CarryChicken/Storage y efectos de reset/death.
-- Riesgos conocidos: `DragonRaidAutoTest` existe y podria ejecutarse automaticamente; Fire v0 no tiene dano todavia; Honda sigue siendo Tool normal con Handle/RightGrip; el repo es snapshot, no fuente Rojo.
+- Riesgos conocidos: DragonRaidAutoTest existe pero queda Disabled=true; DragonRaidService se conserva, pero no se ejecuta automaticamente; Fire v0 no tiene dano todavia; Honda sigue siendo Tool normal con Handle/RightGrip; el repo es snapshot, no fuente Rojo.
