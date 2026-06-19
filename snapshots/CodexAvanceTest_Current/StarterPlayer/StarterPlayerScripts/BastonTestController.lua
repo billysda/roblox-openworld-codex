@@ -1,68 +1,77 @@
+--[[
+	BastonTestController.client.lua  (PROTOTIPO - Etapa 1)
+	Apunta con el mouse, calcula una linea perpendicular centrada en el punto
+	de mira y la envia al server. Conecta Activated una sola vez por tool.
+]]
+
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local UserInputService = game:GetService("UserInputService")
 
 local player = Players.LocalPlayer
 
 local CONFIG = {
-	LineLength = 14
+	LineLength = 14,
 }
 
-local function getRemote()
-	return ReplicatedStorage:WaitForChild("BastonTestRemote", 5)
-end
+local remote = ReplicatedStorage:WaitForChild("BastonTestRemote", 10)
 
 local function onActivated()
+	if not remote then return end
 	local character = player.Character
-	if not character then return end
-	
-	local root = character:FindFirstChild("HumanoidRootPart")
+	local root = character and character:FindFirstChild("HumanoidRootPart")
 	if not root then return end
-	
+
 	local mouse = player:GetMouse()
-	local ray = workspace.CurrentCamera:ScreenPointToRay(mouse.X, mouse.Y)
-	local raycastParams = RaycastParams.new()
-	raycastParams.FilterType = Enum.RaycastFilterType.Exclude
-	raycastParams.FilterDescendantsInstances = {character}
-	
-	local result = workspace:Raycast(ray.Origin, ray.Direction * 1000, raycastParams)
+	local camera = workspace.CurrentCamera
 	local P
-	if result then
-		P = result.Position
+
+	if camera then
+		local ray = camera:ScreenPointToRay(mouse.X, mouse.Y)
+		local params = RaycastParams.new()
+		params.FilterType = Enum.RaycastFilterType.Exclude
+		params.FilterDescendantsInstances = { character }
+		local result = workspace:Raycast(ray.Origin, ray.Direction * 1000, params)
+		P = result and result.Position or mouse.Hit.Position
 	else
 		P = mouse.Hit.Position
 	end
-	
-	local toP = P - root.Position
-	local dir = Vector3.new(toP.X, 0, toP.Z)
-	if dir.Magnitude < 0.001 then return end
-	dir = dir.Unit
-	
+
+	local toP = Vector3.new(P.X - root.Position.X, 0, P.Z - root.Position.Z)
+	if toP.Magnitude < 0.001 then return end
+	local dir = toP.Unit
+
+	-- linea perpendicular a la direccion de mira, centrada en P
 	local perp = Vector3.new(-dir.Z, 0, dir.X).Unit
-	local halfLen = CONFIG.LineLength / 2
-	local p1 = P + perp * halfLen
-	local p2 = P - perp * halfLen
-	
-	local remote = getRemote()
-	if remote then
-		remote:FireServer(p1, p2)
-	end
+	local half = CONFIG.LineLength / 2
+	local p1 = Vector3.new(P.X, P.Y, P.Z) + perp * half
+	local p2 = Vector3.new(P.X, P.Y, P.Z) - perp * half
+
+	remote:FireServer(p1, p2)
 end
 
-local function setupCharacter(char)
-	char.ChildAdded:Connect(function(child)
+-- Conectar Activated una sola vez por tool (evita conexiones duplicadas).
+local function hookTool(tool)
+	if tool:GetAttribute("BastonHooked") then return end
+	tool:SetAttribute("BastonHooked", true)
+	tool.Activated:Connect(onActivated)
+end
+
+local function scan(container)
+	if not container then return end
+	local existing = container:FindFirstChild("BastonTest")
+	if existing and existing:IsA("Tool") then hookTool(existing) end
+	container.ChildAdded:Connect(function(child)
 		if child:IsA("Tool") and child.Name == "BastonTest" then
-			child.Activated:Connect(onActivated)
+			hookTool(child)
 		end
 	end)
 end
 
-player.CharacterAdded:Connect(setupCharacter)
+-- Buscar la tool tanto en el personaje (equipada) como en la mochila.
+player.CharacterAdded:Connect(function(char) scan(char) end)
+if player.Character then scan(player.Character) end
 
-if player.Character then
-	setupCharacter(player.Character)
-	local tool = player.Character:FindFirstChild("BastonTest")
-	if tool then
-		tool.Activated:Connect(onActivated)
-	end
-end
+scan(player:FindFirstChildOfClass("Backpack"))
+player.ChildAdded:Connect(function(child)
+	if child:IsA("Backpack") then scan(child) end
+end)
