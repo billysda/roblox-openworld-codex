@@ -324,6 +324,21 @@ function Flock:UpdateBrain(now)
 		end
 	end
 
+	local penPart = workspace:FindFirstChild("SheepPenZone")
+	local penCenter, penRadius, penIsOpen, penExitTarget = nil, nil, false, nil
+
+	if penPart and penPart:IsA("BasePart") then
+		penCenter = penPart.Position
+		penRadius = math.min(penPart.Size.X, penPart.Size.Z) / 2
+		penIsOpen = penPart:GetAttribute("IsOpen")
+
+		if not penIsOpen then
+			self.Center = penCenter
+		else
+			penExitTarget = penCenter + (penPart.CFrame.LookVector * (penRadius + 15))
+		end
+	end
+
 	return {
 		OwnerRoot = ownerRoot,
 		Center = self.Center,
@@ -335,6 +350,10 @@ function Flock:UpdateBrain(now)
 		Flow = flow,
 		Positions = self:GetPositions(),
 		GrazingZone = grazingZonePos,
+		PenCenter = penCenter,
+		PenRadius = penRadius,
+		PenIsOpen = penIsOpen,
+		PenExitTarget = penExitTarget,
 	}
 end
 

@@ -64,3 +64,7 @@ Qué cambió: Se rediseñó la atracción magnética. Cada oveja ahora calcula u
 Issue trabajado: Fix del conflicto entre Recall (F) y Atracción de GrazingZone (Stutter y Loop IsLost).
 Archivos tocados: Sheep.lua.
 Qué cambió: Se rediseñó la lógica de atracción en Sheep.lua. Ahora la atracción magnética solo se activa si el centro del rebaño (Flock.Center) está a menos de 15 studs del borde de la zona. Esto evita que la zona secuestre a las ovejas cuando el jugador las llama desde lejos (resolviendo el efecto de barrera invisible). Además, se eliminó la restricción rígida de "personalTarget" para que una vez dentro de la zona puedan deambular libremente sin tartamudear.
+
+Issue trabajado: Sistema dinámico de Corral (Pen Zone) mediante Part física.
+Archivos tocados: Flock.lua, Sheep.lua.
+Qué cambió: Se integró la lectura de la pieza "SheepPenZone". Cuando el atributo IsOpen es false, el Flock desconecta su centro del jugador, anclándolo al corral, y las ovejas rebotan internamente. Al cambiar IsOpen a true, se calcula un PenExitTarget usando el LookVector de la pieza, atrayendo a las ovejas hacia la salida automáticamente (Olor a Libertad) hasta cruzar el umbral.
