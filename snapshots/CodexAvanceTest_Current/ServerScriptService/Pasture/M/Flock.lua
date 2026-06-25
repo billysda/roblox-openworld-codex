@@ -244,8 +244,21 @@ end
 function Flock:UpdateBrain(now)
 	local ownerRoot = self:GetOwnerRoot()
 	local center = self:CalculateCenter()
-
 	self.Center = center
+
+	local penPart = workspace:FindFirstChild("SheepPenZone")
+	local penCenter, penRadius, penIsOpen = nil, nil, false
+
+	if penPart and penPart:IsA("BasePart") then
+		penCenter = penPart.Position
+		penRadius = math.min(penPart.Size.Y, penPart.Size.Z) / 2
+		penIsOpen = penPart:GetAttribute("IsOpen")
+
+		if not penIsOpen then
+			self.Center = penCenter
+			ownerRoot = nil
+		end
+	end
 
 	local shouldMove = false
 	local desiredDirection = nil
@@ -324,19 +337,6 @@ function Flock:UpdateBrain(now)
 		end
 	end
 
-	local penPart = workspace:FindFirstChild("SheepPenZone")
-	local penCenter, penRadius, penIsOpen = nil, nil, false
-
-	if penPart and penPart:IsA("BasePart") then
-		penCenter = penPart.Position
-		penRadius = math.min(penPart.Size.X, penPart.Size.Z) / 2
-		penIsOpen = penPart:GetAttribute("IsOpen")
-
-		if not penIsOpen then
-			self.Center = penCenter
-			ownerRoot = nil
-		end
-	end
 
 	return {
 		OwnerRoot = ownerRoot,

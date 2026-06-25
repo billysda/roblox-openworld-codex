@@ -76,3 +76,7 @@ Qué cambió: Se eliminó la lógica de la puerta y la dirección de salida. El 
 Issue trabajado: Fix de pánico del jugador dentro del corral (SheepPenZone).
 Archivos tocados: Flock.lua, Sheep.lua.
 Qué cambió: En Flock.lua, si el corral está cerrado (IsOpen = false), se establece ownerRoot = nil para que las ovejas no consideren al jugador una amenaza y no huyan al acercarse. En Sheep.lua, la restricción de radio del corral se movió a la primera línea de StepAI, actuando como un muro absoluto de máxima prioridad que cancela cualquier estado (incluso pánico por bastón) si intentan salir del tapete cerrado.
+
+Issue trabajado: Fix de orden de ejecución en Flock.lua (Supresión de pánico).
+Archivos tocados: Flock.lua.
+Qué cambió: Se movió el bloque de detección del corral (SheepPenZone) al principio de la función UpdateBrain. Al anular ownerRoot = nil antes del cálculo de presión (PressureRadius), se garantiza que IsMoving permanezca en false, erradicando por completo el instinto de huida de las ovejas mientras el corral está cerrado.
