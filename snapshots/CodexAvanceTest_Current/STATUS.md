@@ -72,3 +72,7 @@ Qué cambió: Se integró la lectura de la pieza "SheepPenZone". Cuando el atrib
 Issue trabajado: Simplificación de la lógica del Corral (Pen Zone).
 Archivos tocados: Flock.lua, Sheep.lua y generación en Workspace.
 Qué cambió: Se eliminó la lógica de la puerta y la dirección de salida. El corral ahora es una pieza plana (cilindro acostado). Si IsOpen es false, las ovejas rebotan hacia el centro del tapete. Si IsOpen es true, la restricción desaparece por completo y las ovejas simplemente retoman su IA natural para deambular libres o seguir al jugador.
+
+Issue trabajado: Fix de pánico del jugador dentro del corral (SheepPenZone).
+Archivos tocados: Flock.lua, Sheep.lua.
+Qué cambió: En Flock.lua, si el corral está cerrado (IsOpen = false), se establece ownerRoot = nil para que las ovejas no consideren al jugador una amenaza y no huyan al acercarse. En Sheep.lua, la restricción de radio del corral se movió a la primera línea de StepAI, actuando como un muro absoluto de máxima prioridad que cancela cualquier estado (incluso pánico por bastón) si intentan salir del tapete cerrado.
