@@ -1644,6 +1644,17 @@ function Sheep:StepAI(now, flockData)
 		return
 	end
 
+	local bastonFlee = self.Model:GetAttribute("BastonFleeDir")
+	if bastonFlee then
+		self:ResetMovementReaction()
+		local panicSpeed = 22
+		if Cfg and Cfg.MoveAnim and Cfg.MoveAnim.PanicSpeed then
+			panicSpeed = Cfg.MoveAnim.PanicSpeed
+		end
+		self:MoveInDirection(bastonFlee, panicSpeed, "PanicMove")
+		return
+	end
+
 	if isLost then
 		self:MoveBackToFlock(now, flockData, lostDistance)
 		return
