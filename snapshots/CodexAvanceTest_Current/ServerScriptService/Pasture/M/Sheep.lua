@@ -1777,17 +1777,32 @@ function Sheep:StepAI(now, flockData)
 
 	if flockData.GrazingZone and not movementRequested then
 		local zoneRadius = (Cfg.Grazing and Cfg.Grazing.ZoneRadius) or 15
-		local distToZone = flatDistance(self.Root.Position, flockData.GrazingZone)
+		local distToZoneCenter = flatDistance(self.Root.Position, flockData.GrazingZone)
 		local ATTRACTION_RADIUS = zoneRadius + 25
 		
-		if distToZone <= ATTRACTION_RADIUS and distToZone > (zoneRadius - 3) then
-			local toZone = getFlatDirection(flockData.GrazingZone - self.Root.Position)
-			if toZone then
-				self.CalmDirection = nil
-				self.CalmMoveUntil = 0
-				self:ResetMovementReaction()
-				self:MoveInDirection(toZone, 9, "Walk")
-				return
+		if distToZoneCenter <= ATTRACTION_RADIUS then
+			local angle = (self.Index or 1) * 2.4
+			local dist = ((self.Index or 1) * 3.7) % math.max(1, zoneRadius - 5)
+			local personalTarget = flockData.GrazingZone + Vector3.new(math.cos(angle) * dist, 0, math.sin(angle) * dist)
+			
+			local distToPersonal = flatDistance(self.Root.Position, personalTarget)
+			
+			if distToZoneCenter > (zoneRadius - 2) or distToPersonal > 3.5 then
+				local toTarget = getFlatDirection(personalTarget - self.Root.Position)
+				if toTarget then
+					self.CalmDirection = nil
+					self.CalmMoveUntil = 0
+					self:ResetMovementReaction()
+					self:MoveInDirection(toTarget, 9, "Walk")
+					return
+				end
+			else
+				if self.CalmDirection then
+					local projectedDist = flatDistance(self.Root.Position + (self.CalmDirection * 4), flockData.GrazingZone)
+					if projectedDist > zoneRadius - 1.5 then
+						self.CalmDirection = getFlatDirection(flockData.GrazingZone - self.Root.Position)
+					end
+				end
 			end
 		end
 	end

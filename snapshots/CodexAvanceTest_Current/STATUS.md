@@ -56,3 +56,7 @@ Qué cambió: Se movió la inyección del bastón en Sheep.lua por encima de Han
 Issue trabajado: Mejora de UX en pastoreo (Atracción Magnética).
 Archivos tocados: Flock.lua, Sheep.lua.
 Qué cambió: Se modificó Flock:UpdateBrain para localizar y enviar la posición de la zona de pastoreo al flockData. En Sheep.lua, se añadió una lógica justo antes de StepCalm que detecta si la oveja está en un radio de atracción (ZoneRadius + 25 studs). Si lo está, la oveja camina automáticamente hacia el centro de la zona de pastoreo para facilitar la jugabilidad, a menos que el jugador la esté arreando activamente.
+
+Issue trabajado: Fix del bug "Pared invisible" al entrar a la zona de pastoreo.
+Archivos tocados: Sheep.lua.
+Qué cambió: Se rediseñó la atracción magnética. Cada oveja ahora calcula un punto estático personal dentro de la zona basado en su índice para evitar amontonamiento. Se eliminó la condición de detención abrupta y se añadió una proyección vectorial que refleja la dirección de deambular (CalmDirection) hacia el centro si la oveja intenta salir de la zona, logrando que entren fluidamente y se mantengan dentro del círculo de forma autónoma.
