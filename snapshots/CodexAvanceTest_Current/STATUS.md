@@ -40,3 +40,7 @@ Issue trabajado: Refactorización del Bastón de pastoreo (Plan C - Cono AI).
 Archivos tocados: BastonTestService.lua, Pasture/M/Sheep.lua, STATUS.md.
 Qué cambió: Se eliminó el empuje de físicas directas. El servidor del bastón ahora proyecta un vector de dirección (BastonFleeDir) como atributo. En Sheep.lua, la oveja lee esto y reacciona usando su propia IA con el estado "PanicMove" y la velocidad "Cfg.MoveAnim.PanicSpeed", replicando exactamente el comportamiento natural de cuando huye del jugador.
 Qué falta probar: Confirmar si la velocidad de huida es la adecuada al uso continuo del bastón.
+
+Issue trabajado: Corrección final del Bastón (Eliminación de empuje artificial).
+Archivos tocados: BastonTestService.lua, Sheep.lua.
+Qué cambió: Se eliminó la actualización constante del vector de huida para evitar el efecto de "viento/volante". Las ovejas ahora eligen una dirección recta y huyen solas por 4.5 segundos a velocidad natural (15, Run) sin frenar en seco cuando el jugador suelta el clic, logrando un comportamiento orgánico de rebaño.

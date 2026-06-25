@@ -33,21 +33,9 @@ end)
 
 RunService.Heartbeat:Connect(function()
 local sheepFolder = workspace:FindFirstChild(SHEEP_FOLDER_NAME)
-if not sheepFolder then return end 
+if not sheepFolder then return end
 
-local function clearBaston(model)
-    if model:IsA("Model") and model:GetAttribute("BastonFleeDir") ~= nil then
-        model:SetAttribute("BastonFleeDir", nil)
-    end
-end
-
-for _, child in ipairs(sheepFolder:GetChildren()) do
-    if child:IsA("Folder") then
-        for _, s in ipairs(child:GetChildren()) do clearBaston(s) end
-    else
-        clearBaston(child)
-    end
-end
+local now = os.clock()
 
 for player, isActive in pairs(activeShepherds) do
     if isActive and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
@@ -71,7 +59,13 @@ for player, isActive in pairs(activeShepherds) do
                         local angleDeg = math.deg(math.acos(math.clamp(dotProduct, -1, 1)))
 
                         if angleDeg <= (BASTON_ANGLE_DEG / 2) then
-                            sheepModel:SetAttribute("BastonFleeDir", dirToSheep)
+                            local currentSpook = sheepModel:GetAttribute("BastonSpookTime") or 0
+                            
+                            if now >= currentSpook then
+                                sheepModel:SetAttribute("BastonFleeDir", dirToSheep)
+                            end
+                            
+                            sheepModel:SetAttribute("BastonSpookTime", now + 4.5)
                         end
                     end
                 end
@@ -86,5 +80,5 @@ for player, isActive in pairs(activeShepherds) do
             end
         end
     end
-end 
+end
 end)
