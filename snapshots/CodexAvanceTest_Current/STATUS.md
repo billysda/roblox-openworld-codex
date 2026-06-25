@@ -52,3 +52,7 @@ Qué cambió: Se eliminó el Heartbeat del servidor. Ahora la detección se calc
 Issue trabajado: Fix de Prioridad en la huida EXCLUSIVA del Bastón y reducción de tiempo a 3s.
 Archivos tocados: BastonTestService.lua, Sheep.lua.
 Qué cambió: Se movió la inyección del bastón en Sheep.lua por encima de HandleSequence para interrumpir animaciones. Esta interrupción está condicionada estrictamente a la variable BastonSpookTime, garantizando que si el jugador se acerca sin usar la herramienta, la oveja mantenga su lógica de escape y prioridades originales intactas. Se redujo el tiempo a 3.0s.
+
+Issue trabajado: Mejora de UX en pastoreo (Atracción Magnética).
+Archivos tocados: Flock.lua, Sheep.lua.
+Qué cambió: Se modificó Flock:UpdateBrain para localizar y enviar la posición de la zona de pastoreo al flockData. En Sheep.lua, se añadió una lógica justo antes de StepCalm que detecta si la oveja está en un radio de atracción (ZoneRadius + 25 studs). Si lo está, la oveja camina automáticamente hacia el centro de la zona de pastoreo para facilitar la jugabilidad, a menos que el jugador la esté arreando activamente.

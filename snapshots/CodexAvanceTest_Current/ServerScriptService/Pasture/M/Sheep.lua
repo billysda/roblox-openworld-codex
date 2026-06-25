@@ -1775,6 +1775,23 @@ function Sheep:StepAI(now, flockData)
 		end
 	end
 
+	if flockData.GrazingZone and not movementRequested then
+		local zoneRadius = (Cfg.Grazing and Cfg.Grazing.ZoneRadius) or 15
+		local distToZone = flatDistance(self.Root.Position, flockData.GrazingZone)
+		local ATTRACTION_RADIUS = zoneRadius + 25
+		
+		if distToZone <= ATTRACTION_RADIUS and distToZone > (zoneRadius - 3) then
+			local toZone = getFlatDirection(flockData.GrazingZone - self.Root.Position)
+			if toZone then
+				self.CalmDirection = nil
+				self.CalmMoveUntil = 0
+				self:ResetMovementReaction()
+				self:MoveInDirection(toZone, 9, "Walk")
+				return
+			end
+		end
+	end
+
 	if self:StepCalm(now, flockData) then
 		return
 	end

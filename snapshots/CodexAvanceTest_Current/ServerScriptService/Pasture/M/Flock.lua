@@ -310,6 +310,20 @@ function Flock:UpdateBrain(now)
 		flow = self:BuildFlowData(self.MoveDirection)
 	end
 
+	local grazingZonePos = nil
+	if Cfg.Grazing and Cfg.Grazing.RuntimeFolder then
+		local runtime = workspace:FindFirstChild(Cfg.Grazing.RuntimeFolder)
+		if runtime then
+			local playerFolder = runtime:FindFirstChild("Grazing_" .. self.Player.UserId)
+			if playerFolder then
+				local zonePart = playerFolder:FindFirstChild("GrazingZone")
+				if zonePart then
+					grazingZonePos = zonePart.Position
+				end
+			end
+		end
+	end
+
 	return {
 		OwnerRoot = ownerRoot,
 		Center = self.Center,
@@ -320,6 +334,7 @@ function Flock:UpdateBrain(now)
 		Mode = mode,
 		Flow = flow,
 		Positions = self:GetPositions(),
+		GrazingZone = grazingZonePos,
 	}
 end
 
