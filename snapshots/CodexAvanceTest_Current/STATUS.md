@@ -48,3 +48,7 @@ Qué cambió: Se eliminó la actualización constante del vector de huida para e
 Issue trabajado: Fix definitivo del Bastón con lógica Event-Driven y Checkpoints a color.
 Archivos tocados: BastonTestService.lua, Sheep.lua, BastonTestController.client.lua
 Qué cambió: Se eliminó el Heartbeat del servidor. Ahora la detección se calcula en un solo frame ('one-shot') al recibir el evento de clic, ampliando el rango a 50 studs y 90 grados. Se agregaron prints con RichText (colores) para debug intuitivo.
+
+Issue trabajado: Fix de Prioridad en la huida EXCLUSIVA del Bastón y reducción de tiempo a 3s.
+Archivos tocados: BastonTestService.lua, Sheep.lua.
+Qué cambió: Se movió la inyección del bastón en Sheep.lua por encima de HandleSequence para interrumpir animaciones. Esta interrupción está condicionada estrictamente a la variable BastonSpookTime, garantizando que si el jugador se acerca sin usar la herramienta, la oveja mantenga su lógica de escape y prioridades originales intactas. Se redujo el tiempo a 3.0s.

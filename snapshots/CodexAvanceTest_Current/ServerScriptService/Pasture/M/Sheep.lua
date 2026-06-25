@@ -1640,18 +1640,21 @@ function Sheep:StepAI(now, flockData)
 	local canRespondToMovement = self:CanRespondToMovement(now, movementRequested, isLeader)
 	local shouldExitSequence = isLost or canRespondToMovement
 
-	if self:HandleSequence(now, shouldExitSequence) then
-		return
-	end
-
+	-- LÓGICA EXCLUSIVA DEL BASTÓN: Solo se activa si recibió el clic (spookTime > now)
 	local spookTime = self.Model:GetAttribute("BastonSpookTime") or 0
 	if now < spookTime then
 		local bastonFlee = self.Model:GetAttribute("BastonFleeDir")
 		if bastonFlee then
-			self:ResetMovementReaction()
+			-- Interrupción absoluta SOLO por uso de la herramienta
+			if self.State ~= "PanicMove" then
+				warn("<font color='rgb(255, 50, 50)'>[⚠️ BASTÓN] Oveja interrumpida de su estado actual por la ráfaga de viento.</font>")
+				self.State = "PanicMove"
+				self.CurrentSequence = nil
+				self:ResetMovementReaction()
+			end
 			
 			if not self.Model:GetAttribute("BastonLogCooldown") or now > self.Model:GetAttribute("BastonLogCooldown") then
-				print("<font color='rgb(255, 100, 255)'>[🐑 IA OVEJA] Ejecutando huida! Faltan: " .. string.format("%.1f", spookTime - now) .. "s</font>")
+				print("<font color='rgb(255, 100, 255)'>[🐑 IA OVEJA] Huida por BASTÓN! Faltan: " .. string.format("%.1f", spookTime - now) .. "s</font>")
 				self.Model:SetAttribute("BastonLogCooldown", now + 1)
 			end
 			
@@ -1660,6 +1663,9 @@ function Sheep:StepAI(now, flockData)
 		end
 	end
 
+	if self:HandleSequence(now, shouldExitSequence) then
+		return
+	end
 	if isLost then
 		self:MoveBackToFlock(now, flockData, lostDistance)
 		return

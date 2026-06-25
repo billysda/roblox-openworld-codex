@@ -48,7 +48,7 @@ local function applyBaston(sheepModel)
 
             if angleDeg <= (BASTON_ANGLE_DEG / 2) then
                 sheepModel:SetAttribute("BastonFleeDir", dirToSheep)
-                sheepModel:SetAttribute("BastonSpookTime", now + 4.5)
+                sheepModel:SetAttribute("BastonSpookTime", now + 3.0)
                 afectadas = afectadas + 1
             end
         end
