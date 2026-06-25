@@ -44,3 +44,7 @@ Qué falta probar: Confirmar si la velocidad de huida es la adecuada al uso cont
 Issue trabajado: Corrección final del Bastón (Eliminación de empuje artificial).
 Archivos tocados: BastonTestService.lua, Sheep.lua.
 Qué cambió: Se eliminó la actualización constante del vector de huida para evitar el efecto de "viento/volante". Las ovejas ahora eligen una dirección recta y huyen solas por 4.5 segundos a velocidad natural (15, Run) sin frenar en seco cuando el jugador suelta el clic, logrando un comportamiento orgánico de rebaño.
+
+Issue trabajado: Fix definitivo del Bastón con lógica Event-Driven y Checkpoints a color.
+Archivos tocados: BastonTestService.lua, Sheep.lua, BastonTestController.client.lua
+Qué cambió: Se eliminó el Heartbeat del servidor. Ahora la detección se calcula en un solo frame ('one-shot') al recibir el evento de clic, ampliando el rango a 50 studs y 90 grados. Se agregaron prints con RichText (colores) para debug intuitivo.

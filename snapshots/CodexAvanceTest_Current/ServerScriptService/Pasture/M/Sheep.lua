@@ -1649,7 +1649,13 @@ function Sheep:StepAI(now, flockData)
 		local bastonFlee = self.Model:GetAttribute("BastonFleeDir")
 		if bastonFlee then
 			self:ResetMovementReaction()
-			self:MoveInDirection(bastonFlee, 15, "Run")
+			
+			if not self.Model:GetAttribute("BastonLogCooldown") or now > self.Model:GetAttribute("BastonLogCooldown") then
+				print("<font color='rgb(255, 100, 255)'>[🐑 IA OVEJA] Ejecutando huida! Faltan: " .. string.format("%.1f", spookTime - now) .. "s</font>")
+				self.Model:SetAttribute("BastonLogCooldown", now + 1)
+			end
+			
+			self:MoveInDirection(bastonFlee, 18, "Run")
 			return
 		end
 	end
