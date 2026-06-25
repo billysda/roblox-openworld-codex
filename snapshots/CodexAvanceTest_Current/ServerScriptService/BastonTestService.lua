@@ -33,29 +33,39 @@ Players.PlayerRemoving:Connect(function(player)
 end)
 
 local function applyHerding(sheepModel, origin, lookDir)
-	if sheepModel:IsA("Model") and sheepModel.PrimaryPart and sheepModel:FindFirstChild("Humanoid") then
-		local humanoid = sheepModel.Humanoid
-		local sheepPos = sheepModel.PrimaryPart.Position
-		
-		local vecToSheep = sheepPos - origin
-		local flatVec = Vector3.new(vecToSheep.X, 0, vecToSheep.Z)
-		local distance = flatVec.Magnitude
+	-- FIX: Se eliminó la dependencia de Humanoid. Se busca el HumanoidRootPart y sus físicas.
+	if sheepModel:IsA("Model") then
+		local root = sheepModel:FindFirstChild("HumanoidRootPart")
+		if root then
+			local linVel = root:FindFirstChild("LinearVelocity")
+			local alignOri = root:FindFirstChild("AlignOrientation")
+			
+			if linVel and alignOri then
+				local sheepPos = root.Position
+				local vecToSheep = sheepPos - origin
+				local flatVec = Vector3.new(vecToSheep.X, 0, vecToSheep.Z)
+				local distance = flatVec.Magnitude
 
-		if distance > 0 and distance <= BASTON_RANGE then
-			local dirToSheep = flatVec.Unit
-			local dotProduct = lookDir:Dot(dirToSheep)
-			local angleDeg = math.deg(math.acos(math.clamp(dotProduct, -1, 1)))
+				if distance > 0 and distance <= BASTON_RANGE then
+					local dirToSheep = flatVec.Unit
+					local dotProduct = lookDir:Dot(dirToSheep)
+					local angleDeg = math.deg(math.acos(math.clamp(dotProduct, -1, 1)))
 
-			if angleDeg <= (BASTON_ANGLE_DEG / 2) then
-				local fleeDirection = dirToSheep
-				local targetPos = sheepPos + (fleeDirection * 12)
-				humanoid:MoveTo(targetPos)
+					if angleDeg <= (BASTON_ANGLE_DEG / 2) then
+						local fleeDirection = dirToSheep
+						
+						-- Sobrescribimos la física de la oveja de forma segura
+						linVel.VectorVelocity = fleeDirection * 22 -- Velocidad de escape
+						alignOri.CFrame = CFrame.lookAt(Vector3.zero, fleeDirection, Vector3.yAxis)
+					end
+				end
 			end
 		end
 	end
 end
 
-RunService.Heartbeat:Connect(function()
+-- Usamos Stepped para ejecutar después de la IA de la oveja pero antes de que rendericen las físicas
+RunService.Stepped:Connect(function()
 	local sheepFolder = workspace:FindFirstChild(SHEEP_FOLDER_NAME)
 	if not sheepFolder then return end
 
@@ -67,7 +77,7 @@ RunService.Heartbeat:Connect(function()
 			local lookDir = rootPart.CFrame.LookVector
 			lookDir = Vector3.new(lookDir.X, 0, lookDir.Z).Unit 
 
-			-- Corrección: Escanear tanto carpetas Flock como ovejas sueltas
+			-- FIX: Iteración correcta de carpetas de rebaños (Flocks)
 			for _, child in ipairs(sheepFolder:GetChildren()) do
 				if child:IsA("Folder") then
 					for _, sheepModel in ipairs(child:GetChildren()) do
