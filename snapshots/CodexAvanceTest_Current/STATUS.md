@@ -68,3 +68,7 @@ Qué cambió: Se rediseñó la lógica de atracción en Sheep.lua. Ahora la atra
 Issue trabajado: Sistema dinámico de Corral (Pen Zone) mediante Part física.
 Archivos tocados: Flock.lua, Sheep.lua.
 Qué cambió: Se integró la lectura de la pieza "SheepPenZone". Cuando el atributo IsOpen es false, el Flock desconecta su centro del jugador, anclándolo al corral, y las ovejas rebotan internamente. Al cambiar IsOpen a true, se calcula un PenExitTarget usando el LookVector de la pieza, atrayendo a las ovejas hacia la salida automáticamente (Olor a Libertad) hasta cruzar el umbral.
+
+Issue trabajado: Simplificación de la lógica del Corral (Pen Zone).
+Archivos tocados: Flock.lua, Sheep.lua y generación en Workspace.
+Qué cambió: Se eliminó la lógica de la puerta y la dirección de salida. El corral ahora es una pieza plana (cilindro acostado). Si IsOpen es false, las ovejas rebotan hacia el centro del tapete. Si IsOpen es true, la restricción desaparece por completo y las ovejas simplemente retoman su IA natural para deambular libres o seguir al jugador.
