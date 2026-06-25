@@ -1636,6 +1636,12 @@ function Sheep:StepAI(now, flockData)
 				self.State = "Walk"
 				self.CurrentSequence = nil
 				self:ResetMovementReaction()
+				
+				if not self.Model:GetAttribute("PenWallLog") or now > (self.Model:GetAttribute("PenWallLog") or 0) then
+					print("<font color='rgb(255, 255, 0)'>[🚧 MURO] Oveja chocó con el límite del tapete. Rebotando.</font>")
+					self.Model:SetAttribute("PenWallLog", now + 1)
+				end
+				
 				self:MoveInDirection(toCenter, 8, "Walk")
 				return
 			end

@@ -246,7 +246,12 @@ function Flock:UpdateBrain(now)
 	local center = self:CalculateCenter()
 	self.Center = center
 
-	local penPart = workspace:FindFirstChild("SheepPenZone")
+	local penPart = nil
+	local pensFolder = workspace:FindFirstChild("SheepPens")
+	if pensFolder then
+		penPart = pensFolder:FindFirstChild("SheepPenZone")
+	end
+
 	local penCenter, penRadius, penIsOpen = nil, nil, false
 
 	if penPart and penPart:IsA("BasePart") then
@@ -257,6 +262,21 @@ function Flock:UpdateBrain(now)
 		if not penIsOpen then
 			self.Center = penCenter
 			ownerRoot = nil
+			
+			if not self.LastPenLog or now - self.LastPenLog > 2 then
+				print("<font color='rgb(100, 255, 100)'>[🏡 CORRAL] Tapete detectado. Rebaño encerrado y dócil.</font>")
+				self.LastPenLog = now
+			end
+		else
+			if not self.LastPenLog or now - self.LastPenLog > 2 then
+				print("<font color='rgb(255, 150, 100)'>[🏡 CORRAL] Tapete abierto. Ovejas libres.</font>")
+				self.LastPenLog = now
+			end
+		end
+	else
+		if not self.LastPenLog or now - self.LastPenLog > 5 then
+			warn("<font color='rgb(255, 50, 50)'>[🔴 ERROR CORRAL] No se encontró SheepPenZone dentro de SheepPens.</font>")
+			self.LastPenLog = now
 		end
 	end
 

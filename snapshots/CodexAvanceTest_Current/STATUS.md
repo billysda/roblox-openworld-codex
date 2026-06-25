@@ -80,3 +80,7 @@ Qué cambió: En Flock.lua, si el corral está cerrado (IsOpen = false), se esta
 Issue trabajado: Fix de orden de ejecución en Flock.lua (Supresión de pánico).
 Archivos tocados: Flock.lua.
 Qué cambió: Se movió el bloque de detección del corral (SheepPenZone) al principio de la función UpdateBrain. Al anular ownerRoot = nil antes del cálculo de presión (PressureRadius), se garantiza que IsMoving permanezca en false, erradicando por completo el instinto de huida de las ovejas mientras el corral está cerrado.
+
+Issue trabajado: Fix de jerarquía del Corral y adición de Logs de depuración.
+Archivos tocados: Flock.lua, Sheep.lua.
+Qué cambió: Se corrigió la ruta de búsqueda en Flock.lua para que busque "SheepPenZone" dentro de la carpeta "SheepPens". Se añadieron prints de colores (RichText) con cooldowns de 2 y 5 segundos en Flock y Sheep para rastrear el estado del corral (Encontrado/Error/Muro) sin generar lag en la consola.
