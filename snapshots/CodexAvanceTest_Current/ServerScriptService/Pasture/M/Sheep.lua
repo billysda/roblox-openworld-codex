@@ -1777,17 +1777,17 @@ function Sheep:StepAI(now, flockData)
 
 	if flockData.GrazingZone and not movementRequested then
 		local zoneRadius = (Cfg.Grazing and Cfg.Grazing.ZoneRadius) or 15
-		local distToZoneCenter = flatDistance(self.Root.Position, flockData.GrazingZone)
-		local ATTRACTION_RADIUS = zoneRadius + 25
+		local flockCenterDist = flockData.Center and flatDistance(flockData.Center, flockData.GrazingZone) or math.huge
 		
-		if distToZoneCenter <= ATTRACTION_RADIUS then
-			local angle = (self.Index or 1) * 2.4
-			local dist = ((self.Index or 1) * 3.7) % math.max(1, zoneRadius - 5)
-			local personalTarget = flockData.GrazingZone + Vector3.new(math.cos(angle) * dist, 0, math.sin(angle) * dist)
+		if flockCenterDist <= zoneRadius + 15 then
+			local distToZoneCenter = flatDistance(self.Root.Position, flockData.GrazingZone)
+			local ATTRACTION_RADIUS = zoneRadius + 20
 			
-			local distToPersonal = flatDistance(self.Root.Position, personalTarget)
-			
-			if distToZoneCenter > (zoneRadius - 2) or distToPersonal > 3.5 then
+			if distToZoneCenter <= ATTRACTION_RADIUS and distToZoneCenter > (zoneRadius - 2) then
+				local angle = (self.Index or 1) * 2.4
+				local dist = ((self.Index or 1) * 3.7) % math.max(1, zoneRadius - 5)
+				local personalTarget = flockData.GrazingZone + Vector3.new(math.cos(angle) * dist, 0, math.sin(angle) * dist)
+				
 				local toTarget = getFlatDirection(personalTarget - self.Root.Position)
 				if toTarget then
 					self.CalmDirection = nil
@@ -1796,7 +1796,8 @@ function Sheep:StepAI(now, flockData)
 					self:MoveInDirection(toTarget, 9, "Walk")
 					return
 				end
-			else
+				
+			elseif distToZoneCenter <= (zoneRadius - 2) then
 				if self.CalmDirection then
 					local projectedDist = flatDistance(self.Root.Position + (self.CalmDirection * 4), flockData.GrazingZone)
 					if projectedDist > zoneRadius - 1.5 then

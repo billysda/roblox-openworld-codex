@@ -60,3 +60,7 @@ Qué cambió: Se modificó Flock:UpdateBrain para localizar y enviar la posició
 Issue trabajado: Fix del bug "Pared invisible" al entrar a la zona de pastoreo.
 Archivos tocados: Sheep.lua.
 Qué cambió: Se rediseñó la atracción magnética. Cada oveja ahora calcula un punto estático personal dentro de la zona basado en su índice para evitar amontonamiento. Se eliminó la condición de detención abrupta y se añadió una proyección vectorial que refleja la dirección de deambular (CalmDirection) hacia el centro si la oveja intenta salir de la zona, logrando que entren fluidamente y se mantengan dentro del círculo de forma autónoma.
+
+Issue trabajado: Fix del conflicto entre Recall (F) y Atracción de GrazingZone (Stutter y Loop IsLost).
+Archivos tocados: Sheep.lua.
+Qué cambió: Se rediseñó la lógica de atracción en Sheep.lua. Ahora la atracción magnética solo se activa si el centro del rebaño (Flock.Center) está a menos de 15 studs del borde de la zona. Esto evita que la zona secuestre a las ovejas cuando el jugador las llama desde lejos (resolviendo el efecto de barrera invisible). Además, se eliminó la restricción rígida de "personalTarget" para que una vez dentro de la zona puedan deambular libremente sin tartamudear.
