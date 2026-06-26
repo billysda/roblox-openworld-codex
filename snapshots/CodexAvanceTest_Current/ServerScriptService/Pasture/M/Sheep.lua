@@ -1627,39 +1627,56 @@ function Sheep:StepAI(now, flockData)
 	end
 
 	flockData = flockData or {}
+	local myFlockData = {}
+	for k, v in pairs(flockData) do myFlockData[k] = v end
+	flockData = myFlockData
 
-	if flockData.PenCenter and not flockData.PenIsOpen then
+	if flockData.PenCenter then
 		local distToPen = flatDistance(self.Root.Position, flockData.PenCenter)
-		if distToPen > (flockData.PenRadius - 2.5) then
-			local toCenter = getFlatDirection(flockData.PenCenter - self.Root.Position)
-			if toCenter then
-				self.State = "Walk"
-				self.CurrentSequence = nil
-				self:ResetMovementReaction()
-				
-				if not self.Model:GetAttribute("PenWallLog") or now > (self.Model:GetAttribute("PenWallLog") or 0) then
-					print("<font color='rgb(255, 255, 0)'>[🚧 MURO] Oveja chocó con el límite del tapete. Rebotando.</font>")
-					self.Model:SetAttribute("PenWallLog", now + 1)
-				end
-				
-				self:MoveInDirection(toCenter, 8, "Walk")
-				return
-			end
-		end
-	end
+		local isInsidePen = distToPen <= (flockData.PenRadius + 1.5)
 
-	if flockData.PenCenter and flockData.PenIsOpen and flockData.PenApproachCenter and not movementRequested then
-		local distToApproach = flatDistance(self.Root.Position, flockData.PenApproachCenter)
-		if distToApproach <= flockData.PenApproachRadius then
-			local distToPen = flatDistance(self.Root.Position, flockData.PenCenter)
-			if distToPen > 2 then
-				local toPen = getFlatDirection(flockData.PenCenter - self.Root.Position)
-				if toPen then
-					self.CalmDirection = nil
-					self.CalmMoveUntil = 0
-					self:ResetMovementReaction()
-					self:MoveInDirection(toPen, 11, "Trot")
-					return
+		if not flockData.PenIsOpen then
+			self.Model:SetAttribute("JustReleased", false)
+			if isInsidePen then
+				flockData.OwnerRoot = nil
+				flockData.Center = flockData.PenCenter
+				flockData.LeaderPosition = nil
+				flockData.IsMoving = false
+				flockData.MoveDirection = nil
+
+				if distToPen > (flockData.PenRadius - 2.5) then
+					local toCenter = getFlatDirection(flockData.PenCenter - self.Root.Position)
+					if toCenter then
+						self.State = "Walk"
+						self.CurrentSequence = nil
+						self:ResetMovementReaction()
+						self:MoveInDirection(toCenter, 8, "Walk")
+						return
+					end
+				end
+			end
+		else
+			if isInsidePen then
+				self.Model:SetAttribute("JustReleased", true)
+			end
+
+			local maxRange = flockData.PenRadius + (flockData.PenApproachRadius or 12)
+			if self.Model:GetAttribute("JustReleased") and distToPen > maxRange then
+				self.Model:SetAttribute("JustReleased", false)
+			end
+
+			local movReq = flockData.IsMoving and flockData.MoveDirection
+			if flockData.PenApproachCenter and not movReq and not self.Model:GetAttribute("JustReleased") then
+				local distToApp = flatDistance(self.Root.Position, flockData.PenApproachCenter)
+				if distToApp <= flockData.PenApproachRadius and distToPen > 3 then
+					local toPen = getFlatDirection(flockData.PenCenter - self.Root.Position)
+					if toPen then
+						self.CalmDirection = nil
+						self.CalmMoveUntil = 0
+						self:ResetMovementReaction()
+						self:MoveInDirection(toPen, 11, "Trot")
+						return
+					end
 				end
 			end
 		end
@@ -1670,7 +1687,6 @@ function Sheep:StepAI(now, flockData)
 	local leaderPosition = flockData.LeaderPosition
 	local ownerRoot = flockData.OwnerRoot
 	local positions = flockData.Positions
-
 	local movementRequested = flockData.IsMoving and flockData.MoveDirection
 	local isLost, lostDistance = self:IsLostFromFlock(flockData, isLeader)
 

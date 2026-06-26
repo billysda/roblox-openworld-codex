@@ -88,3 +88,7 @@ Qué cambió: Se corrigió la ruta de búsqueda en Flock.lua para que busque "Sh
 Issue trabajado: Creación de puerta funcional y área de succión automatizada.
 Archivos tocados: Flock.lua, Sheep.lua, Estructura en Workspace.
 Qué cambió: Se programó un script procedimental que genera una puerta con ProximityPrompt y un área de aproximación (SheepPenApproachZone) dentro de la carpeta SheepPens. Se modificó Flock.lua y Sheep.lua para que, si las ovejas están dentro del área de aproximación y la puerta está abierta, caminen solas hacia el centro del corral.
+
+Issue trabajado: Filtrado fiel de detección en SheepPenApproachZone (Bucle de succión).
+Archivos tocados: Sheep.lua.
+Qué cambió: Se rediseñó el bloque de control del corral en Sheep:StepAI. Se introdujo el atributo dinámico JustReleased. Al abrir la puerta, las ovejas internas adquieren inmunidad temporal para poder salir de la alfombra sin ser succionadas. Al alejarse al campo, el flag se extingue, permitiendo que la succión funcione de manera fiel únicamente cuando regresan de pastar.
