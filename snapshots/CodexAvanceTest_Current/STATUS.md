@@ -96,3 +96,7 @@ Qué cambió: Se rediseñó el bloque de control del corral en Sheep:StepAI. Se 
 Issue trabajado: Fix de conflicto de imanes (GrazingZone vs PenApproach).
 Archivos tocados: Sheep.lua.
 Qué cambió: Se eliminó la succión omnidireccional del bloque GrazingZone en Sheep.lua, conservando únicamente su rebote interno. Además, se le añadió la condición JustReleased para que las ovejas no queden atrapadas en la zona verde cuando la puerta del corral se abre y se les ordena salir. La alfombra de aproximación ahora es el único imán de entrada válido en todo el juego.
+
+Issue trabajado: Fix de glitch en ovejas externas al cerrar corral.
+Archivos tocados: Flock.lua, Sheep.lua.
+Qué cambió: Se eliminó la mutación global en Flock.lua que forzaba ownerRoot=nil al cerrar la puerta. En Sheep.lua se purgó el código sobrante; ahora, si la valla se cierra y la oveja está afuera, el motor del corral se ignora por completo. La oveja mantiene su lógica de seguimiento intacta y ya no se bugea.

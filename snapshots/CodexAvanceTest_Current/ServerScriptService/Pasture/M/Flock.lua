@@ -261,11 +261,6 @@ function Flock:UpdateBrain(now)
 		penCenter = penPart.Position
 		penRadius = math.min(penPart.Size.Y, penPart.Size.Z) / 2
 		penIsOpen = penPart:GetAttribute("IsOpen") or false
-
-		if not penIsOpen then
-			self.Center = penCenter
-			ownerRoot = nil
-		end
 	end
 
 	if approachPart and approachPart:IsA("BasePart") then

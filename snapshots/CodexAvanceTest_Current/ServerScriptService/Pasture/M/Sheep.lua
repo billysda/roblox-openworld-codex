@@ -1660,7 +1660,7 @@ function Sheep:StepAI(now, flockData)
 				self.Model:SetAttribute("JustReleased", true)
 			end
 
-			local maxRange = flockData.PenRadius + (flockData.PenApproachRadius or 12)
+			local maxRange = flockData.PenRadius + (flockData.PenApproachRadius or 12) + 5
 			if self.Model:GetAttribute("JustReleased") and distToPen > maxRange then
 				self.Model:SetAttribute("JustReleased", false)
 			end
