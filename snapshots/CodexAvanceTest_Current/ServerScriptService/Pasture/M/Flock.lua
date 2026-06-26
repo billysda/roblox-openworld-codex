@@ -247,37 +247,30 @@ function Flock:UpdateBrain(now)
 	self.Center = center
 
 	local penPart = nil
+	local approachPart = nil
 	local pensFolder = workspace:FindFirstChild("SheepPens")
 	if pensFolder then
 		penPart = pensFolder:FindFirstChild("SheepPenZone")
+		approachPart = pensFolder:FindFirstChild("SheepPenApproachZone")
 	end
 
 	local penCenter, penRadius, penIsOpen = nil, nil, false
+	local appCenter, appRadius = nil, nil
 
 	if penPart and penPart:IsA("BasePart") then
 		penCenter = penPart.Position
 		penRadius = math.min(penPart.Size.Y, penPart.Size.Z) / 2
-		penIsOpen = penPart:GetAttribute("IsOpen")
+		penIsOpen = penPart:GetAttribute("IsOpen") or false
 
 		if not penIsOpen then
 			self.Center = penCenter
 			ownerRoot = nil
-			
-			if not self.LastPenLog or now - self.LastPenLog > 2 then
-				print("<font color='rgb(100, 255, 100)'>[🏡 CORRAL] Tapete detectado. Rebaño encerrado y dócil.</font>")
-				self.LastPenLog = now
-			end
-		else
-			if not self.LastPenLog or now - self.LastPenLog > 2 then
-				print("<font color='rgb(255, 150, 100)'>[🏡 CORRAL] Tapete abierto. Ovejas libres.</font>")
-				self.LastPenLog = now
-			end
 		end
-	else
-		if not self.LastPenLog or now - self.LastPenLog > 5 then
-			warn("<font color='rgb(255, 50, 50)'>[🔴 ERROR CORRAL] No se encontró SheepPenZone dentro de SheepPens.</font>")
-			self.LastPenLog = now
-		end
+	end
+
+	if approachPart and approachPart:IsA("BasePart") then
+		appCenter = approachPart.Position
+		appRadius = math.min(approachPart.Size.Y, approachPart.Size.Z) / 2
 	end
 
 	local shouldMove = false
@@ -372,6 +365,8 @@ function Flock:UpdateBrain(now)
 		PenCenter = penCenter,
 		PenRadius = penRadius,
 		PenIsOpen = penIsOpen,
+		PenApproachCenter = appCenter,
+		PenApproachRadius = appRadius,
 	}
 end
 

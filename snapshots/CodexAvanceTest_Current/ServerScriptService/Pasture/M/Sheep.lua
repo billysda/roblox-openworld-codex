@@ -1648,6 +1648,23 @@ function Sheep:StepAI(now, flockData)
 		end
 	end
 
+	if flockData.PenCenter and flockData.PenIsOpen and flockData.PenApproachCenter and not movementRequested then
+		local distToApproach = flatDistance(self.Root.Position, flockData.PenApproachCenter)
+		if distToApproach <= flockData.PenApproachRadius then
+			local distToPen = flatDistance(self.Root.Position, flockData.PenCenter)
+			if distToPen > 2 then
+				local toPen = getFlatDirection(flockData.PenCenter - self.Root.Position)
+				if toPen then
+					self.CalmDirection = nil
+					self.CalmMoveUntil = 0
+					self:ResetMovementReaction()
+					self:MoveInDirection(toPen, 11, "Trot")
+					return
+				end
+			end
+		end
+	end
+
 	local isLeader = flockData.Leader == self
 	local center = flockData.Center
 	local leaderPosition = flockData.LeaderPosition

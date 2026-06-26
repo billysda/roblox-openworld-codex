@@ -84,3 +84,7 @@ Qué cambió: Se movió el bloque de detección del corral (SheepPenZone) al pri
 Issue trabajado: Fix de jerarquía del Corral y adición de Logs de depuración.
 Archivos tocados: Flock.lua, Sheep.lua.
 Qué cambió: Se corrigió la ruta de búsqueda en Flock.lua para que busque "SheepPenZone" dentro de la carpeta "SheepPens". Se añadieron prints de colores (RichText) con cooldowns de 2 y 5 segundos en Flock y Sheep para rastrear el estado del corral (Encontrado/Error/Muro) sin generar lag en la consola.
+
+Issue trabajado: Creación de puerta funcional y área de succión automatizada.
+Archivos tocados: Flock.lua, Sheep.lua, Estructura en Workspace.
+Qué cambió: Se programó un script procedimental que genera una puerta con ProximityPrompt y un área de aproximación (SheepPenApproachZone) dentro de la carpeta SheepPens. Se modificó Flock.lua y Sheep.lua para que, si las ovejas están dentro del área de aproximación y la puerta está abierta, caminen solas hacia el centro del corral.
