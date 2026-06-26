@@ -92,3 +92,7 @@ Qué cambió: Se programó un script procedimental que genera una puerta con Pro
 Issue trabajado: Filtrado fiel de detección en SheepPenApproachZone (Bucle de succión).
 Archivos tocados: Sheep.lua.
 Qué cambió: Se rediseñó el bloque de control del corral en Sheep:StepAI. Se introdujo el atributo dinámico JustReleased. Al abrir la puerta, las ovejas internas adquieren inmunidad temporal para poder salir de la alfombra sin ser succionadas. Al alejarse al campo, el flag se extingue, permitiendo que la succión funcione de manera fiel únicamente cuando regresan de pastar.
+
+Issue trabajado: Fix de conflicto de imanes (GrazingZone vs PenApproach).
+Archivos tocados: Sheep.lua.
+Qué cambió: Se eliminó la succión omnidireccional del bloque GrazingZone en Sheep.lua, conservando únicamente su rebote interno. Además, se le añadió la condición JustReleased para que las ovejas no queden atrapadas en la zona verde cuando la puerta del corral se abre y se les ordena salir. La alfombra de aproximación ahora es el único imán de entrada válido en todo el juego.
