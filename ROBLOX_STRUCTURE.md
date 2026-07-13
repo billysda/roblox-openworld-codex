@@ -878,3 +878,23 @@ Estado relevante para huevos como municion:
 
 ## Actualizacion 2026-06-16
 Se agrego Pasture.M.GrazingService para el sistema de pastoreo v0, usando atributos de Player.
+
+## Análisis del Proyectil Visual y Autoridad del Disparo (Tareas 48, 49, 50)
+
+### 1. Manejo del Proyectil Visual (Local)
+- **Creación en el Cliente**: [SlingshotController](file:///E:/Games/clone/roblox-openworld-codex/snapshots/CodexAvanceTest_Current/StarterPlayerScripts/SlingshotController.client.lua#L1721-L1732) crea localmente una instancia física de tipo `Part` llamada `SlingshotEggProjectile` al recibir un evento de servidor exitoso (`FireResult` con `result.Ok == true`).
+- **Propiedades del Proyectil**: Es una esfera cosmética de tamaño `0.34`, color blanco/huevo (`255, 246, 218`), material `SmoothPlastic` y está anclada (`Anchored = true`).
+- **Seguridad Física**: Tiene desactivadas todas las interacciones físicas (`CanCollide = false`, `CanTouch = false`, `CanQuery = false`), por lo que no interfiere con colisiones del mundo, triggers ni otros raycasts.
+- **Trayectoria Parabólica**: Se calcula localmente con una gravedad de escala `2.0` y velocidad visual de `55` studs/s. Su posición (`CFrame`) se actualiza frame a frame usando el evento `Heartbeat` de `RunService`.
+- **Limpieza Automática**: Se destruye inmediatamente mediante una función `finish()` al expirar la duración de la parábola, además de contar con el salvaguardas de `Debris:AddItem(projectile, duration + 0.2)`.
+
+### 2. Diferencia con Autoridad de Servidor
+- **Raycast en el Servidor**: La validez del disparo y el cálculo del impacto real se realizan exclusivamente en el servidor en [SlingshotService:Fire](file:///E:/Games/clone/roblox-openworld-codex/snapshots/CodexAvanceTest_Current/ServerScriptService/Homestead/M/SlingshotService.lua#L213-L231) utilizando un Raycast instantáneo en un solo frame.
+- **Flujo de Ejecución**: El cliente solicita el disparo enviando la dirección y carga (`FireRequest:FireServer(...)`). El servidor valida munición/cooldown, realiza el raycast, y envía el `FireResult` (con el punto de impacto final `HitPosition` calculado) de vuelta al cliente que disparó para que dibuje la animación.
+- **Efecto Cosmético del Proyectil**: El proyectil del cliente no realiza colisiones reales ni decide el impacto. Simplemente viaja visualmente hacia el `HitPosition` que el servidor ya determinó previamente.
+
+### 3. Riesgos y Recomendaciones de QA
+- **Retraso por Latencia (Lag)**: Al no tener predicción local inmediata, el proyectil visual tarda en aparecer el equivalente al tiempo de ida y vuelta (RTT) del servidor. En entornos de alta latencia, esto puede dar la sensación de lag de disparo o falta de respuesta al input.
+- **Desalineación Visual de Origen**: Dado que el origen del proyectil se calcula cuando se recibe el `FireResult` del servidor (basado en la posición del brazo/herramienta en ese instante), si el jugador se está moviendo a gran velocidad, el proyectil podría "nacer" desfasado respecto al personaje.
+- **Invisibilidad en Modo Multijugador**: Como `SlingshotService` envía el `FireResult` usando `FireClient(player)` en lugar de replicarlo a todos los jugadores, actualmente **los proyectiles de otros jugadores son 100% invisibles**. Solo el tirador ve su propio huevo viajar por el aire.
+- **Confusión de Validation**: Existe el riesgo de que los testers de QA supongan que el proyectil visual representa una simulación física real o que los otros jugadores lo ven, lo cual podría inducir falsos positivos en reportes de pruebas de combate.

@@ -229,9 +229,15 @@ Cola local de trabajo continuo para Codex App + MCP en el place Roblox Studio `C
 
 ## Nuevas tareas seguras 14
 
-48. [codex-ready][analysis] Revisar en modo lectura si `SlingshotController` crea instancias visuales locales que puedan afectar pruebas.
-49. [codex-ready][documentation] Documentar visuales locales de proyectil/impacto y su diferencia con autoridad de servidor.
-50. [codex-ready][risk-review] Revisar riesgos de confundir visual local con disparo autorizado.
+48. [done][analysis] Revisar en modo lectura si `SlingshotController` crea instancias visuales locales que puedan afectar pruebas.
+    - Se constató que crea una part `SlingshotEggProjectile` de forma local al recibir `FireResult` (result.Ok == true) del servidor.
+    - Es 100% cosmética y no tiene colisiones físicas (CanCollide/CanTouch/CanQuery = false).
+49. [done][documentation] Documentar visuales locales de proyectil/impacto y su diferencia con autoridad de servidor.
+    - Documentado al final de `ROBLOX_STRUCTURE.md`.
+    - La autoridad total reside en el servidor mediante un raycast instantáneo. El proyectil en el cliente solo se dibuja después de recibir la respuesta exitosa del servidor.
+50. [done][risk-review] Revisar riesgos de confundir visual local con disparo autorizado.
+    - Documentado al final de `ROBLOX_STRUCTURE.md`.
+    - Riesgos principales: lag en la aparición del proyectil por falta de predicción local, desalineación de origen al moverse rápido, e invisibilidad en multijugador (solo el emisor recibe el FireResult).
 
 ## Falta probar en Play
 
