@@ -30,7 +30,7 @@ function EggService.new(inventoryService)
 	if self.EggTemplate then
 		print("[EggService] Egg template:", self.EggTemplate:GetFullName())
 	else
-		warn("[EggService] No encontrÃ© EggTemplate.")
+		warn("[EggService] No encontré EggTemplate.")
 	end
 
 	return self
@@ -199,7 +199,7 @@ function EggService:LayEgg(chicken, eggPoint, homeData)
 			end
 
 			if HomeCfg.Debug.PrintEggs then
-				print("[EggService]", player.Name, "recogiÃ³ huevo. Total sesiÃ³n:", self.CollectedByUser[ownerId])
+				print("[EggService]", player.Name, "recogió huevo. Total sesión:", self.CollectedByUser[ownerId])
 			end
 
 			eggModel:Destroy()

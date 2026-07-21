@@ -2,8 +2,8 @@
 -- Control visual local de prompts de casas.
 -- Regla:
 -- - Si NO tengo casa: veo solo casas libres.
--- - Si YA tengo casa: no veo ningÃºn prompt de reclamar casa.
--- - Si una casa estÃ¡ tomada por cualquiera: no veo su prompt.
+-- - Si YA tengo casa: no veo ningún prompt de reclamar casa.
+-- - Si una casa está tomada por cualquiera: no veo su prompt.
 
 local Players = game:GetService("Players")
 local Workspace = game:GetService("Workspace")
@@ -167,7 +167,7 @@ housesFolder.ChildRemoved:Connect(function(child)
 	task.defer(refreshPrompts)
 end)
 
--- Respaldo: esto evita que por replicaciÃ³n tardÃ­a o scripts del servidor el prompt quede visible.
+-- Respaldo: esto evita que por replicación tardía o scripts del servidor el prompt quede visible.
 task.spawn(function()
 	while task.wait(0.25) do
 		refreshPrompts()
@@ -176,4 +176,4 @@ end)
 
 refreshPrompts()
 
-print("[PasturePromptClient v2] Listo. Prompts invÃ¡lidos ocultos localmente.")
+print("[PasturePromptClient v2] Listo. Prompts inválidos ocultos localmente.")

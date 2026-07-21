@@ -2919,7 +2919,7 @@ function Chicken:StepCarried(dt)
 		return
 	end
 
-	-- Motor6D mueve la gallina automÃ¡ticamente con el personaje.
+	-- Motor6D mueve la gallina automáticamente con el personaje.
 	-- No usamos PivotTo por frame.
 end
 

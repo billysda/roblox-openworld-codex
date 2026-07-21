@@ -1,5 +1,16 @@
 Place: CodexAvanceTest
 DataModel: Place1
+Fecha: 2026-07-21
+Snapshot: CodexAvanceTest_Current
+
+Issue trabajado: #8 [Protected Change] Actualizar snapshot principal desde Roblox Studio
+Archivos tocados: MANIFEST.md, AnimalService.lua, Chicken.lua, EggService.lua, HomeService.lua, StorageService.lua, HomesteadClient.client.lua, PasturePromptClient.client.lua, SlingshotController.client.lua
+Que cambio: Se actualizaron unicamente los 8 scripts autorizados del snapshot desde el Source real de Roblox Studio y se registraron sus hashes normalizados en MANIFEST.md.
+Que falta probar: Revision manual del snapshot y validacion humana final antes de marcar el issue como cerrado.
+Riesgos conocidos: DragonRaidService y los 13 scripts STUDIO_ONLY quedaron intactos por exclusion explicita del issue.
+
+Place: CodexAvanceTest
+DataModel: Place1
 Fecha: 2026-06-16 21:17:34 -05:00
 Snapshot: CodexAvanceTest_Current
 

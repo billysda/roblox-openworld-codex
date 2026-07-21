@@ -208,7 +208,7 @@ end
 
 function HomeService:EnsureCuySpawns(house, cuySpawns)
 	if not cuySpawns then
-		warn(string.format("[Homestead] %s no tiene CuySpawns; no se crearÃ¡n cuys.", house.Name))
+		warn(string.format("[Homestead] %s no tiene CuySpawns; no se crearán cuys.", house.Name))
 		return
 	end
 
@@ -221,7 +221,7 @@ function HomeService:EnsureCuySpawns(house, cuySpawns)
 	end
 
 	if validSpawns == 0 then
-		warn(string.format("[Homestead] %s tiene CuySpawns sin partes Spawn; no se crearÃ¡n cuys.", house.Name))
+		warn(string.format("[Homestead] %s tiene CuySpawns sin partes Spawn; no se crearán cuys.", house.Name))
 	end
 end
 
@@ -399,7 +399,7 @@ function HomeService:GetHomeInfo(player)
 	if not data then
 		return {
 			HasHome = false,
-			Message = "No tienes casa reclamada todavÃ­a.",
+			Message = "No tienes casa reclamada todavía.",
 		}
 	end
 
@@ -420,7 +420,7 @@ function HomeService:GetHomeInfo(player)
 		ChickenCount = chickenCount,
 		CuyCount = cuyCount,
 		EggCount = eggCount,
-		Message = "CabaÃ±a detectada correctamente.",
+		Message = "Cabaña detectada correctamente.",
 	}
 end
 

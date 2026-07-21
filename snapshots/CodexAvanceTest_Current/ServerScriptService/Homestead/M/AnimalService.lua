@@ -42,13 +42,13 @@ function AnimalService.new(homeService, inventoryService)
 	if self.ChickenTemplate then
 		print("[AnimalService] Chicken template:", self.ChickenTemplate:GetFullName())
 	else
-		warn("[AnimalService] No encontrÃ© ChickenTemplate/Gallina. ColÃ³calo en ServerStorage > Assets > HomesteadAnimals > ChickenTemplate")
+		warn("[AnimalService] No encontré ChickenTemplate/Gallina. Colócalo en ServerStorage > Assets > HomesteadAnimals > ChickenTemplate")
 	end
 
 	if self.CuyTemplate then
 		print("[AnimalService] Cuy template:", self.CuyTemplate:GetFullName())
 	else
-		warn("[AnimalService] No encontrÃ© CuyTemplate/Cuy. ColÃ³calo en ServerStorage > Assets > HomesteadAnimals > CuyTemplate")
+		warn("[AnimalService] No encontré CuyTemplate/Cuy. Colócalo en ServerStorage > Assets > HomesteadAnimals > CuyTemplate")
 	end
 
 	return self
@@ -252,7 +252,7 @@ function AnimalService:TryCarryChicken(player, chicken)
 		self.CarriedByUser[player.UserId] = chicken
 
 		if HomeCfg.Debug.PrintCarry then
-			print("[AnimalService]", player.Name, "cargÃ³ gallina", chicken.Index)
+			print("[AnimalService]", player.Name, "cargó gallina", chicken.Index)
 		end
 	end
 
@@ -277,7 +277,7 @@ function AnimalService:DropCarriedChicken(player)
 	player:SetAttribute("CarryingChicken", false)
 
 	if HomeCfg.Debug.PrintCarry then
-		print("[AnimalService]", player.Name, "soltÃ³ gallina", chicken.Index, "state:", chicken.State)
+		print("[AnimalService]", player.Name, "soltó gallina", chicken.Index, "state:", chicken.State)
 	end
 
 	return ok

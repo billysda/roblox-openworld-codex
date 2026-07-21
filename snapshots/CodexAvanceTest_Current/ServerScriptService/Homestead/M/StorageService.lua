@@ -101,14 +101,14 @@ function StorageService:OpenStorage(player, house)
 	local targetHouse = house or (self.HomeService and self.HomeService:GetHouseByOwner(player))
 	if not targetHouse then
 		if HomeCfg.Debug and HomeCfg.Debug.Storage then
-			warn("[Storage]", player and player.Name or "Unknown", "intentÃ³ abrir Storage sin casa.")
+			warn("[Storage]", player and player.Name or "Unknown", "intentó abrir Storage sin casa.")
 		end
 		return false
 	end
 
 	if not self:IsOwner(player, targetHouse) then
 		if HomeCfg.Debug and HomeCfg.Debug.Storage then
-			warn("[Storage]", player and player.Name or "Unknown", "intentÃ³ abrir Storage ajeno:", targetHouse.Name)
+			warn("[Storage]", player and player.Name or "Unknown", "intentó abrir Storage ajeno:", targetHouse.Name)
 		end
 		return false
 	end
@@ -122,7 +122,7 @@ function StorageService:OpenStorage(player, house)
 	end
 
 	if HomeCfg.Debug and HomeCfg.Debug.Storage then
-		print(string.format("[Storage] %s abriÃ³ Storage. Egg=%d", player.Name, data.Inventory.Egg or 0))
+		print(string.format("[Storage] %s abrió Storage. Egg=%d", player.Name, data.Inventory.Egg or 0))
 	end
 
 	return true
@@ -161,7 +161,7 @@ function StorageService:SetupHouse(house)
 	end
 
 	prompt.ActionText = "Abrir"
-	prompt.ObjectText = "AlmacÃ©n"
+	prompt.ObjectText = "Almacén"
 	prompt.HoldDuration = 0.2
 	prompt.MaxActivationDistance = 8
 	prompt.RequiresLineOfSight = false
@@ -181,7 +181,7 @@ end
 function StorageService:Setup()
 	local housesFolder = self.HomeService and self.HomeService.HousesFolder
 	if not housesFolder then
-		warn("[Storage] No encontrÃ© HousesFolder para configurar Storage.")
+		warn("[Storage] No encontré HousesFolder para configurar Storage.")
 		return
 	end
 

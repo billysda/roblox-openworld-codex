@@ -1,5 +1,5 @@
 -- HomesteadClient v4
--- H = pedir info de cabaÃ±a.
+-- H = pedir info de cabaña.
 -- G = soltar gallina cargada.
 
 local Players = game:GetService("Players")
@@ -45,7 +45,7 @@ local function createStorageGui()
 	title.Position = UDim2.fromOffset(16, 12)
 	title.Size = UDim2.new(1, -32, 0, 34)
 	title.Font = Enum.Font.GothamBold
-	title.Text = "AlmacÃ©n"
+	title.Text = "Almacén"
 	title.TextColor3 = Color3.fromRGB(255, 240, 210)
 	title.TextScaled = true
 	title.Parent = frame

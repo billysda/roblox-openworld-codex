@@ -245,7 +245,7 @@ local function getOrCreateUI()
 	ammoLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
 	ammoLabel.TextScaled = true
 	ammoLabel.Font = Enum.Font.GothamBold
-	ammoLabel.Text = "ðŸ¥š x 0"
+	ammoLabel.Text = "🥚 x 0"
 	ammoLabel.Parent = ammoUI
 	
 	local stroke = Instance.new("UIStroke")
@@ -278,7 +278,7 @@ end
 local function updateAmmoUI()
 	if not ammoLabel then return end
 	local ammo = player:GetAttribute("SlingshotEggAmmo") or 0
-	ammoLabel.Text = "ðŸ¥š x " .. tostring(ammo)
+	ammoLabel.Text = "🥚 x " .. tostring(ammo)
 end
 
 local function showFeedback(msg)
@@ -1712,7 +1712,7 @@ function playProjectileVisual(result)
 		end
 	end
 
-	-- Constantes de trayectoria parabÃ³lica (tipo catapulta)
+	-- Constantes de trayectoria parabólica (tipo catapulta)
 	local VISUAL_SPEED = 55 -- velocidad lenta, arco alto
 	local GRAVITY_SCALE = 2.0 -- gravedad exagerada
 	local MIN_DURATION = 0.18
