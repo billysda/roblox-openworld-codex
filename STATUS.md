@@ -4,9 +4,10 @@
 ConfiguraciÃ³n inicial de flujo Codex + GitHub Issues.
 
 ## Último issue trabajado
-CODEX_QUEUE tareas 48-50.
+Issue #3 `Auditar sincronizacion actual Roblox Studio <-> GitHub`.
 
 ## Cambios recientes
+- 2026-07-21 16:04 -05:00: Se ejecuto la auditoria de sincronizacion de la Issue #3 contra `main`/GitHub usando hashes SHA-256 del `Source` real leido por MCP en `CodexAvanceTest` (`Place1`, `PlaceId 84364645709785`). Se creo `reports/CURRENT_SYNC_AUDIT.md`. Resultado: `NO SINCRONIZADO` con `19 MATCH`, `9 DIFFERENT`, `13 STUDIO_ONLY`, `12 REPO_ONLY` y `1 DUPLICATE_REPO_VERSION`. No se modifico gameplay ni Roblox Studio; solo lectura y documentacion.
 - 2026-07-13 10:36 -05:00: Se completaron las tareas de análisis, documentación y riesgos 48-50 en `CODEX_QUEUE.md`. Se documentó en `ROBLOX_STRUCTURE.md` el ciclo de vida del proyectil visual local (`SlingshotEggProjectile`), la diferencia con la autoridad absoluta de servidor mediante raycast, y los riesgos relacionados a lag, desfase de origen e invisibilidad en multijugador. No se modificó Roblox Studio.
 - 2026-06-16 21:58 -05:00: Se implemento Pastoreo por zonas v0 (`GrazingService`) sin alterar `Flock.lua` ni `Sheep.lua`.
 - 2026-06-16 21:50 -05:00: Se ajusto Cfg.SheepPerFlock a 2 en Pasture.
@@ -100,3 +101,13 @@ eports/mount_system_diagnosis.md, scripts/ServerScriptService/*, scripts/Starter
 - Sistemas encontrados: Pasture v1.2, Homestead v4 ChickenCarry, InventoryService, EggService, StorageService, SlingshotService, SlingshotController, SlingshotAnimateGuard, DragonRaidService y DragonRaidAutoTest.
 - Que falta probar: no se hizo Play en esta tarea; falta prueba manual de recoger Egg, Storage, disparo Honda, consumo de Egg, bloqueos por CarryChicken/Storage y efectos de reset/death.
 - Riesgos conocidos: DragonRaidAutoTest existe pero queda Disabled=true; DragonRaidService se conserva, pero no se ejecuta automaticamente; Fire v0 no tiene dano todavia; Honda sigue siendo Tool normal con Handle/RightGrip; el repo es snapshot, no fuente Rojo.
+
+## Issue #3 - Auditoria de sincronizacion
+
+- 2026-07-21 16:04 -05:00: Se trabajo la Issue #3 `Auditar sincronizacion actual Roblox Studio <-> GitHub`.
+- Place inspeccionado: `CodexAvanceTest / Place1`, `PlaceId 84364645709785`, Studio en modo Edit, usando MCP de Roblox Studio.
+- Archivos tocados: `reports/CURRENT_SYNC_AUDIT.md`, `STATUS.md`.
+- Que cambio: se compararon todos los `Script`, `LocalScript` y `ModuleScript` del place activo contra `scripts/` y `snapshots/CodexAvanceTest_Current/` usando hashes SHA-256 del `Source` normalizado.
+- Resultado: `NO SINCRONIZADO` con `19 MATCH`, `9 DIFFERENT`, `13 STUDIO_ONLY`, `12 REPO_ONLY` y `1 DUPLICATE_REPO_VERSION`.
+- Que falta probar: no se exportaron ni reemplazaron scripts; sigue pendiente una tarea posterior para decidir que exportar o limpiar despues de revisar el informe.
+- Riesgos conocidos: hay diferencias reales entre Studio y repo en Homestead y clientes; tambien hay restos `REPO_ONLY` del trabajo Dragon y una version conflictiva de `ServerScriptService.Pasture.M.Sheep`.
