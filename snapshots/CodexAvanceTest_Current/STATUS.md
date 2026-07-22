@@ -3,6 +3,12 @@ DataModel: Place1
 Fecha: 2026-07-21
 Snapshot: CodexAvanceTest_Current
 
+Issue trabajado: #11 [Protected Change] Evitar que ovejas caminen flotando sobre acantilados
+Archivos tocados: MANIFEST.md, STATUS.md, ServerScriptService/Pasture/M/Cfg.lua, ServerScriptService/Pasture/M/Sheep.lua
+Que cambio: Se agrego Cfg.Ledge y Sheep:HasSafeGroundAhead(direction). MoveInDirection ahora verifica suelo seguro adelante antes de aplicar LinearVelocity; si no hay suelo seguro intenta una direccion alternativa y, si no existe, detiene la oveja. No se modifico HoverForce ni StepPhysics.
+Que falta probar: Play manual con orden G hacia borde/acantilado, terreno plano y pendientes moderadas; confirmar que F/G siguen funcionando y que no hay flotacion hacia vacio.
+Riesgos conocidos: La proteccion depende de raycast vertical y parametros de terreno; zonas con geometria muy irregular pueden requerir ajuste de ProbeAhead, ProbeDepth, MaxSafeDrop o MinGroundNormalY.
+
 Issue trabajado: #10 [Protected Change] Aplicar v1 del destino marcado y revisar hover de seleccion
 Archivos tocados: MANIFEST.md, STATUS.md, ServerScriptService/Pasture/Main.lua, ServerScriptService/Pasture/M/Cfg.lua, ServerScriptService/Pasture/M/Flock.lua, ServerScriptService/Pasture/M/Sheep.lua, StarterPlayerScripts/PastureClient.client.lua
 Que cambio: Se aplico la mejora exacta indicada para la orden G: distancia maxima 220, duracion 30s, parada 6 studs, validacion local antes de marcador, CommandActive/CommandTarget en flockData y menor miedo del dueno mientras CommandTarget esta activo. Main conserva validacion de servidor usando Cfg.CommandTarget.MaxDistanceFromPlayer, con fallback 220.

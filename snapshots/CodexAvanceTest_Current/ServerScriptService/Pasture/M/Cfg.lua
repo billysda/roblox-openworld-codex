@@ -108,6 +108,28 @@ Cfg.CommandTarget = {
 	ForceImmediateResponse = true,
 }
 
+Cfg.Ledge = {
+	Enabled = true,
+
+	-- Distancia hacia adelante para verificar si el proximo paso tiene suelo.
+	ProbeAhead = 5,
+
+	-- Altura desde la que se lanza el raycast hacia abajo.
+	ProbeHeight = 4,
+
+	-- Profundidad maxima para buscar suelo debajo del punto adelantado.
+	ProbeDepth = 14,
+
+	-- Caida maxima permitida entre la posicion actual y el suelo detectado adelante.
+	MaxSafeDrop = 4,
+
+	-- Pendiente maxima aproximada permitida. Evita subir/bajar paredes o laderas muy extremas.
+	MinGroundNormalY = 0.55,
+
+	-- Si no hay suelo seguro, intenta buscar una direccion alternativa antes de detenerse.
+	TryAlternativeDirection = true,
+}
+
 -- Movimiento de grupo por "zona de flujo", no siguiendo rígidamente a la líder.
 Cfg.Flow = {
 	TargetAhead = 13,
