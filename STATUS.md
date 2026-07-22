@@ -4,9 +4,10 @@
 ConfiguraciÃ³n inicial de flujo Codex + GitHub Issues.
 
 ## Último issue trabajado
-Issue #3 `Auditar sincronizacion actual Roblox Studio <-> GitHub`.
+Issue #9 `Prototipo v0: ordenar rebano a punto marcado con G`.
 
 ## Cambios recientes
+- 2026-07-22: Se implemento la Issue #9 en la rama `feature/pasture-command-target-v0` directamente sobre Roblox Studio `CodexAvanceTest`, tocando solo `ServerScriptService.Pasture.Main`, `ServerScriptService.Pasture.M.Cfg`, `ServerScriptService.Pasture.M.House`, `ServerScriptService.Pasture.M.Flock` y `StarterPlayer.StarterPlayerScripts.PastureClient`. Se agrego el comando `G` con marcador local temporal, RemoteEvent separado `PastureRemote.CommandTarget`, validacion de servidor por jugador vivo/distancia maxima 80 studs, duracion 15s y parada a 8 studs. `F`/Whistle se conserva y cancela el objetivo actual. Snapshot verificado contra Studio por hashes SHA-256. Falta prueba manual jugable en Play con rebano real. Riesgos: v0 no usa Pathfinding, el objetivo se valida por distancia y no por navegabilidad, y las restricciones finales de corral/baston siguen dependiendo de los sistemas protegidos existentes.
 - 2026-07-21 16:04 -05:00: Se ejecuto la auditoria de sincronizacion de la Issue #3 contra `main`/GitHub usando hashes SHA-256 del `Source` real leido por MCP en `CodexAvanceTest` (`Place1`, `PlaceId 84364645709785`). Se creo `reports/CURRENT_SYNC_AUDIT.md`. Resultado: `NO SINCRONIZADO` con `19 MATCH`, `9 DIFFERENT`, `13 STUDIO_ONLY`, `12 REPO_ONLY` y `1 DUPLICATE_REPO_VERSION`. No se modifico gameplay ni Roblox Studio; solo lectura y documentacion.
 - 2026-07-13 10:36 -05:00: Se completaron las tareas de análisis, documentación y riesgos 48-50 en `CODEX_QUEUE.md`. Se documentó en `ROBLOX_STRUCTURE.md` el ciclo de vida del proyectil visual local (`SlingshotEggProjectile`), la diferencia con la autoridad absoluta de servidor mediante raycast, y los riesgos relacionados a lag, desfase de origen e invisibilidad en multijugador. No se modificó Roblox Studio.
 - 2026-06-16 21:58 -05:00: Se implemento Pastoreo por zonas v0 (`GrazingService`) sin alterar `Flock.lua` ni `Sheep.lua`.

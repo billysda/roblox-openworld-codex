@@ -94,6 +94,13 @@ Cfg.Flock = {
 	WeightNatural = 0.12,
 }
 
+Cfg.CommandTarget = {
+	RemoteName = "CommandTarget",
+	MaxDistanceFromPlayer = 80,
+	Duration = 15,
+	StopDistance = 8,
+}
+
 -- Movimiento de grupo por "zona de flujo", no siguiendo rígidamente a la líder.
 Cfg.Flow = {
 	TargetAhead = 13,

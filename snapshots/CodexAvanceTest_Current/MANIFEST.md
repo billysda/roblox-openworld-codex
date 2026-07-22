@@ -21,11 +21,12 @@
 | StarterPlayerScripts/SlingshotAnimateGuard.client.lua | game.StarterPlayer.StarterPlayerScripts.SlingshotAnimateGuard | LocalScript | 257 | encontrado |  |
 | StarterPlayerScripts/PasturePromptClient.client.lua | game.StarterPlayer.StarterPlayerScripts.PasturePromptClient | LocalScript | 180 | 09c2b83d916c0c49fe4c48b0d5eaf26756c16be853d6520ef2802a278bff61e5 | encontrado | snapshot issue #8 verificado contra Studio |
 | ServerScriptService/DragonRaidAutoTest.server.lua | game.ServerScriptService.DragonRaidAutoTest | Script | 9 | encontrado | opcional, Disabled=true |
-| ServerScriptService/Pasture/Main.lua | game.ServerScriptService.Pasture.Main | Script/Module | 155 | encontrado | exportado en snapshot |
+| ServerScriptService/Pasture/Main.lua | game.ServerScriptService.Pasture.Main | Script | 192 | 0f5e3923c85f09664d244c9229c728b2a79d0737cca716a5352a105e888b0e2d | encontrado | actualizado issue #9, verificado contra Studio |
 | ServerScriptService/Pasture/Monitor.lua | game.ServerScriptService.Pasture.Monitor | Script/Module | 345 | encontrado | exportado en snapshot |
-| ServerScriptService/Pasture/M/Cfg.lua | game.ServerScriptService.Pasture.M.Cfg | Script/Module | 64 | encontrado | exportado en snapshot, SheepPerFlock ajustado a 2 |
+| ServerScriptService/Pasture/M/Cfg.lua | game.ServerScriptService.Pasture.M.Cfg | ModuleScript | 338 | 67ab72c5633cee4d4dde611f4d044acec2276e835dce267757362ce9ad745d9c | encontrado | actualizado issue #9, verificado contra Studio |
 | ServerScriptService/Pasture/M/Rand.lua | game.ServerScriptService.Pasture.M.Rand | Script/Module | 28 | encontrado | exportado en snapshot |
-| ServerScriptService/Pasture/M/House.lua | game.ServerScriptService.Pasture.M.House | Script/Module | 163 | encontrado | exportado en snapshot |
-| ServerScriptService/Pasture/M/Flock.lua | game.ServerScriptService.Pasture.M.Flock | Script/Module | 369 | encontrado | exportado en snapshot |
+| ServerScriptService/Pasture/M/House.lua | game.ServerScriptService.Pasture.M.House | ModuleScript | 177 | 4a0e05dfdc16e54aec46afa2af64a4abedb4858a2adf5fb9c911fc41e32bf509 | encontrado | actualizado issue #9, verificado contra Studio |
+| ServerScriptService/Pasture/M/Flock.lua | game.ServerScriptService.Pasture.M.Flock | ModuleScript | 449 | 2f2747112fef81a3c2fd2f7c1575e307f56ebc6f211a7fd3a966db11036d2bfc | encontrado | actualizado issue #9, verificado contra Studio |
 | ServerScriptService/Pasture/M/Sheep.lua | game.ServerScriptService.Pasture.M.Sheep | Script/Module | 1791 | encontrado | exportado en snapshot |
 | ServerScriptService/Pasture/M/GrazingService.lua | game.ServerScriptService.Pasture.M.GrazingService | ModuleScript | 262 | creado | exportado en snapshot, Pastoreo v0 |
+| StarterPlayerScripts/PastureClient.client.lua | game.StarterPlayer.StarterPlayerScripts.PastureClient | LocalScript | 73 | b2f0a4178ea6fea6d0459571833c47617bc152f9c6a049f225315e3adb126880 | encontrado | actualizado issue #9, verificado contra Studio |

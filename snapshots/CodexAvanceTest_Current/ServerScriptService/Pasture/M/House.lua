@@ -144,6 +144,20 @@ function House:Whistle(player)
 	end
 end
 
+function House:CommandTarget(player, targetPosition)
+	local userId = player.UserId
+	local data = self.PlayerData[userId]
+
+	if not data then
+		warn("[House]", player.Name, "intento ordenar rebano, pero no tiene casa.")
+		return
+	end
+
+	if data.Flock and data.Flock.SetCommandTarget then
+		data.Flock:SetCommandTarget(targetPosition, os.clock())
+	end
+end
+
 function House:StepPhysics(dt)
 	for _, data in pairs(self.PlayerData) do
 		if data.Flock then

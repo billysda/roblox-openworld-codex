@@ -64,6 +64,8 @@ function Flock.new(player, houseModel, runtimeFolder, sheepTemplate)
 	self.IsMoving = false
 	self.LastPressureTime = 0
 	self.RecallUntil = 0
+	self.CommandTarget = nil
+	self.CommandTargetUntil = 0
 
 	self.Folder = Instance.new("Folder")
 	self.Folder.Name = "Flock_" .. player.UserId
@@ -140,6 +142,21 @@ function Flock:SpawnSheep()
 			print("[Flock] Líder asignada:", self.Leader.Model.Name)
 		end
 	end
+end
+
+function Flock:SetCommandTarget(targetPosition, now)
+	self.CommandTarget = targetPosition
+	self.CommandTargetUntil = (now or os.clock()) + (Cfg.CommandTarget.Duration or 15)
+	self.RecallUntil = 0
+
+	if Cfg.Debug.PrintLifecycle and self.Player then
+		print("[Flock] Destino marcado:", self.Player.Name, targetPosition)
+	end
+end
+
+function Flock:ClearCommandTarget()
+	self.CommandTarget = nil
+	self.CommandTargetUntil = 0
 end
 
 function Flock:GetOwnerRoot()
@@ -277,9 +294,27 @@ function Flock:UpdateBrain(now)
 		local distanceToCenter = flatVector(toCenter).Magnitude
 		local playerMoving = self:IsPlayerMoving(ownerRoot)
 
+		if self.CommandTarget and now > self.CommandTargetUntil then
+			self:ClearCommandTarget()
+		end
+
+		local commandActive = self.CommandTarget ~= nil and now <= self.CommandTargetUntil
 		local recallActive = now <= self.RecallUntil
 
-		if distanceToCenter <= Cfg.Flock.PressureRadius and playerMoving then
+		if commandActive then
+			local toTarget = self.CommandTarget - center
+			local distanceToTarget = flatVector(toTarget).Magnitude
+
+			if distanceToTarget > (Cfg.CommandTarget.StopDistance or 8) then
+				shouldMove = true
+				desiredDirection = flatDirection(toTarget)
+				mode = "CommandTarget"
+			else
+				self:ClearCommandTarget()
+				mode = "Idle"
+			end
+
+		elseif distanceToCenter <= Cfg.Flock.PressureRadius and playerMoving then
 			shouldMove = true
 			desiredDirection = flatDirection(toCenter)
 			self.LastPressureTime = now
@@ -367,6 +402,7 @@ end
 
 function Flock:Whistle()
 	self.RecallUntil = os.clock() + Cfg.Flock.RecallDuration
+	self:ClearCommandTarget()
 
 	if Cfg.Debug.PrintLifecycle and self.Player then
 		print("[Flock] Silbido recibido:", self.Player.Name)
@@ -406,6 +442,8 @@ function Flock:Destroy()
 	self.Leader = nil
 	self.Center = nil
 	self.MoveDirection = nil
+	self.CommandTarget = nil
+	self.CommandTargetUntil = 0
 end
 
 return Flock

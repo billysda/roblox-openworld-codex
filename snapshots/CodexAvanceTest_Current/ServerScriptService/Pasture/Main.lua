@@ -91,6 +91,7 @@ end
 
 local remoteFolder = ensureFolder(ReplicatedStorage, "PastureRemote")
 local whistleEvent = ensureRemote(remoteFolder, "Whistle")
+local commandTargetEvent = ensureRemote(remoteFolder, Cfg.CommandTarget.RemoteName)
 ensureRemote(remoteFolder, "RequestStats")
 ensureRemote(remoteFolder, "StatsResponse")
 
@@ -99,6 +100,17 @@ local GrazingService = require(M:WaitForChild("GrazingService"))
 local grazingService = GrazingService.new(houseService)
 
 local lastWhistle = {}
+
+local function isFiniteNumber(value)
+	return typeof(value) == "number" and value == value and value > -math.huge and value < math.huge
+end
+
+local function isValidTargetPosition(value)
+	return typeof(value) == "Vector3"
+		and isFiniteNumber(value.X)
+		and isFiniteNumber(value.Y)
+		and isFiniteNumber(value.Z)
+end
 
 whistleEvent.OnServerEvent:Connect(function(player)
 	local now = os.clock()
@@ -112,6 +124,28 @@ whistleEvent.OnServerEvent:Connect(function(player)
 
 	if houseService.Whistle then
 		houseService:Whistle(player)
+	end
+end)
+
+commandTargetEvent.OnServerEvent:Connect(function(player, targetPosition)
+	if not isValidTargetPosition(targetPosition) then
+		return
+	end
+
+	local character = player.Character
+	local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+	local root = character and character:FindFirstChild("HumanoidRootPart")
+	if not humanoid or humanoid.Health <= 0 or not root then
+		return
+	end
+
+	local maxDistance = Cfg.CommandTarget.MaxDistanceFromPlayer or 80
+	if (Vector3.new(targetPosition.X, 0, targetPosition.Z) - Vector3.new(root.Position.X, 0, root.Position.Z)).Magnitude > maxDistance then
+		return
+	end
+
+	if houseService.CommandTarget then
+		houseService:CommandTarget(player, targetPosition)
 	end
 end)
 
