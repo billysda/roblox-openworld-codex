@@ -1135,46 +1135,6 @@ function Sheep:UpdateStuckRecovery(direction, hitObstacle, now)
 	return nil
 end
 
-function Sheep:HasSafeGroundAhead(direction)
-	if not self.Root or not self.Root.Parent then
-		return false
-	end
-
-	if not Cfg.Ledge or Cfg.Ledge.Enabled == false then
-		return true
-	end
-
-	local flatDirection = getFlatDirection(direction)
-	if not flatDirection then
-		return false
-	end
-
-	local probeAhead = Cfg.Ledge.ProbeAhead or 5
-	local probeHeight = Cfg.Ledge.ProbeHeight or 4
-	local probeDepth = Cfg.Ledge.ProbeDepth or 14
-	local maxSafeDrop = Cfg.Ledge.MaxSafeDrop or 4
-	local minNormalY = Cfg.Ledge.MinGroundNormalY or 0.55
-
-	local ahead = self.Root.Position + flatDirection * probeAhead
-	local origin = ahead + Vector3.new(0, probeHeight, 0)
-	local castDirection = Vector3.new(0, -probeDepth, 0)
-
-	local result = workspace:Raycast(origin, castDirection, self.RaycastParams)
-	if not result then
-		return false
-	end
-
-	if result.Normal and result.Normal.Y < minNormalY then
-		return false
-	end
-
-	local currentY = self.Root.Position.Y
-	local groundY = result.Position.Y
-	local drop = currentY - groundY
-
-	return drop <= maxSafeDrop
-end
-
 function Sheep:MoveInDirection(direction, speed, state)
 	local now = os.clock()
 	local finalDirection = getFlatDirection(direction)
@@ -1209,23 +1169,6 @@ function Sheep:MoveInDirection(direction, speed, state)
 			self.ObstacleAvoidDirection = alternative
 			self.ObstacleAvoidUntil = now + 1.0
 			finalDirection = getFlatDirection(finalDirection * 0.1 + alternative * 1.3) or alternative
-		else
-			self.LinearVelocity.VectorVelocity = Vector3.zero
-			return
-		end
-	end
-
-	if not self:HasSafeGroundAhead(finalDirection) then
-		local alternative = nil
-
-		if Cfg.Ledge and Cfg.Ledge.TryAlternativeDirection ~= false then
-			alternative = self:FindClearAlternativeDirection(finalDirection, Vector3.new(0, 0, 0))
-		end
-
-		if alternative and self:HasSafeGroundAhead(alternative) then
-			self.ObstacleAvoidDirection = alternative
-			self.ObstacleAvoidUntil = now + 0.75
-			finalDirection = alternative
 		else
 			self.LinearVelocity.VectorVelocity = Vector3.zero
 			return
