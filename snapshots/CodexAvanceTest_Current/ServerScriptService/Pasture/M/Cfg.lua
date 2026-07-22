@@ -96,9 +96,16 @@ Cfg.Flock = {
 
 Cfg.CommandTarget = {
 	RemoteName = "CommandTarget",
-	MaxDistanceFromPlayer = 80,
-	Duration = 15,
-	StopDistance = 8,
+
+	MaxDistanceFromPlayer = 220,
+	Duration = 30,
+	StopDistance = 6,
+
+	SoftFleeRadius = 6,
+	EmergencyPanicDistance = 3,
+	PlayerFleeWeight = 0.25,
+
+	ForceImmediateResponse = true,
 }
 
 -- Movimiento de grupo por "zona de flujo", no siguiendo rígidamente a la líder.

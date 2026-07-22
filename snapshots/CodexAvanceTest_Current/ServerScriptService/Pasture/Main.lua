@@ -139,7 +139,7 @@ commandTargetEvent.OnServerEvent:Connect(function(player, targetPosition)
 		return
 	end
 
-	local maxDistance = Cfg.CommandTarget.MaxDistanceFromPlayer or 80
+	local maxDistance = Cfg.CommandTarget.MaxDistanceFromPlayer or 220
 	if (Vector3.new(targetPosition.X, 0, targetPosition.Z) - Vector3.new(root.Position.X, 0, root.Position.Z)).Magnitude > maxDistance then
 		return
 	end

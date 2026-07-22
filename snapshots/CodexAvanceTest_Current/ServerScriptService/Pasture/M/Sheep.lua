@@ -1688,10 +1688,11 @@ function Sheep:StepAI(now, flockData)
 	local ownerRoot = flockData.OwnerRoot
 	local positions = flockData.Positions
 	local movementRequested = flockData.IsMoving and flockData.MoveDirection
+	local commandActive = flockData.CommandActive == true
 	local isLost, lostDistance = self:IsLostFromFlock(flockData, isLeader)
 
 	local canRespondToMovement = self:CanRespondToMovement(now, movementRequested, isLeader)
-	local shouldExitSequence = isLost or canRespondToMovement
+	local shouldExitSequence = isLost or canRespondToMovement or commandActive
 
 	-- LÓGICA EXCLUSIVA DEL BASTÓN: Solo se activa si recibió el clic (spookTime > now)
 	local spookTime = self.Model:GetAttribute("BastonSpookTime") or 0
@@ -1724,7 +1725,7 @@ function Sheep:StepAI(now, flockData)
 		return
 	end
 
-	if movementRequested and not canRespondToMovement then
+	if movementRequested and not canRespondToMovement and not commandActive then
 		self.LinearVelocity.VectorVelocity = Vector3.zero
 
 		if not self.SequenceActive and not self.SequenceEnding then
@@ -1755,15 +1756,25 @@ function Sheep:StepAI(now, flockData)
 		if ownerRoot then
 			local distToPlayer = flatDistance(self.Root.Position, ownerRoot.Position)
 
-			if distToPlayer <= Cfg.Radius then
+			local fleeRadius = Cfg.Radius
+			local fleeWeight = Cfg.Flow.PlayerFleeWeight
+			local panicDistance = Cfg.MoveAnim.PanicDistance
+
+			if commandActive then
+				fleeRadius = Cfg.CommandTarget.SoftFleeRadius or 6
+				fleeWeight = Cfg.CommandTarget.PlayerFleeWeight or 0.25
+				panicDistance = Cfg.CommandTarget.EmergencyPanicDistance or 3
+			end
+
+			if distToPlayer <= fleeRadius then
 				local awayFromPlayer = getFlatDirection(self.Root.Position - ownerRoot.Position)
 
 				if awayFromPlayer then
-					local strength = math.clamp((Cfg.Radius - distToPlayer) / Cfg.Radius, 0.25, 1)
-					direction += awayFromPlayer * Cfg.Flow.PlayerFleeWeight * strength
+					local strength = math.clamp((fleeRadius - distToPlayer) / fleeRadius, 0.15, 1)
+					direction += awayFromPlayer * fleeWeight * strength
 				end
 
-				if distToPlayer <= Cfg.MoveAnim.PanicDistance then
+				if distToPlayer <= panicDistance then
 					panic = true
 				end
 			end

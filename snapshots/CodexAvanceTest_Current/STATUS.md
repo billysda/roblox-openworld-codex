@@ -3,6 +3,12 @@ DataModel: Place1
 Fecha: 2026-07-21
 Snapshot: CodexAvanceTest_Current
 
+Issue trabajado: #10 [Protected Change] Aplicar v1 del destino marcado y revisar hover de seleccion
+Archivos tocados: MANIFEST.md, STATUS.md, ServerScriptService/Pasture/Main.lua, ServerScriptService/Pasture/M/Cfg.lua, ServerScriptService/Pasture/M/Flock.lua, ServerScriptService/Pasture/M/Sheep.lua, StarterPlayerScripts/PastureClient.client.lua
+Que cambio: Se aplico la mejora exacta indicada para la orden G: distancia maxima 220, duracion 30s, parada 6 studs, validacion local antes de marcador, CommandActive/CommandTarget en flockData y menor miedo del dueno mientras CommandTarget esta activo. Main conserva validacion de servidor usando Cfg.CommandTarget.MaxDistanceFromPlayer, con fallback 220.
+Que falta probar: Play manual en Roblox Studio para confirmar que G responde desde mayor distancia, ambas ovejas obedecen, F cancela el destino y corral/baston mantienen prioridad.
+Riesgos conocidos: v1 sigue sin Pathfinding; puntos no navegables pueden fallar. La busqueda de hover/seleccion no encontro SelectionBox, Highlight, Handles, SelectionService ni Mouse.Target en scripts del juego; solo GetMouse() en PastureClient para el raycast, por lo que el hover visual parece comportamiento de Roblox Studio durante Play/Run.
+
 Issue trabajado: #8 [Protected Change] Actualizar snapshot principal desde Roblox Studio
 Archivos tocados: MANIFEST.md, AnimalService.lua, Chicken.lua, EggService.lua, HomeService.lua, StorageService.lua, HomesteadClient.client.lua, PasturePromptClient.client.lua, SlingshotController.client.lua
 Que cambio: Se actualizaron unicamente los 8 scripts autorizados del snapshot desde el Source real de Roblox Studio y se registraron sus hashes normalizados en MANIFEST.md.

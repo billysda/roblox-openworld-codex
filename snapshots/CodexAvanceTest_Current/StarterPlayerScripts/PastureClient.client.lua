@@ -8,12 +8,22 @@ local player = Players.LocalPlayer
 local remoteFolder = ReplicatedStorage:WaitForChild("PastureRemote")
 local whistleEvent = remoteFolder:WaitForChild("Whistle")
 local commandTargetEvent = remoteFolder:WaitForChild("CommandTarget", 10)
+local MAX_COMMAND_DISTANCE = 220
 
 if not commandTargetEvent then
 	warn("[PastureClient] CommandTarget remote no encontrado; F sigue disponible.")
 end
 
 local marker = nil
+
+local function getPlayerRoot()
+	local character = player.Character
+	return character and character:FindFirstChild("HumanoidRootPart")
+end
+
+local function flatDistance(a, b)
+	return (Vector3.new(a.X, 0, a.Z) - Vector3.new(b.X, 0, b.Z)).Magnitude
+end
 
 local function getMouseGroundPosition()
 	local mouse = player:GetMouse()
@@ -66,8 +76,13 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
 	elseif input.KeyCode == Enum.KeyCode.G and commandTargetEvent then
 		local position = getMouseGroundPosition()
 		if position then
-			showMarker(position)
-			commandTargetEvent:FireServer(position)
+			local root = getPlayerRoot()
+			if root and flatDistance(position, root.Position) <= MAX_COMMAND_DISTANCE then
+				showMarker(position)
+				commandTargetEvent:FireServer(position)
+			else
+				warn("[PastureClient] Destino demasiado lejos para el rebaño.")
+			end
 		end
 	end
 end)

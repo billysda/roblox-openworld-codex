@@ -389,6 +389,8 @@ function Flock:UpdateBrain(now)
 		MoveDirection = self.MoveDirection,
 		IsMoving = self.IsMoving,
 		Mode = mode,
+		CommandActive = self.CommandTarget ~= nil and now <= self.CommandTargetUntil,
+		CommandTarget = self.CommandTarget,
 		Flow = flow,
 		Positions = self:GetPositions(),
 		GrazingZone = grazingZonePos,
