@@ -3,6 +3,12 @@ DataModel: Place1
 Fecha: 2026-07-21
 Snapshot: CodexAvanceTest_Current
 
+Issue trabajado: #13 [Protected Change] Migrar corral global a configuracion por casa
+Archivos tocados: MANIFEST.md, STATUS.md, ServerScriptService/Pasture/M/Cfg.lua, ServerScriptService/Pasture/M/Flock.lua, ServerScriptService/Pasture/M/Sheep.lua
+Que cambio: Se agregaron nombres/defaults de Pen en Cfg, Flock cachea referencias de corral por casa y solo usa fallback legacy global si la casa no tiene configuracion valida, y Sheep usa asistencia de entrada en dos etapas PenEntrance -> PenCenter. En Workspace se crearon PenEntrance en las 10 casas, marcados NeedsManualPlacement=true y con PenAssistEnabled=false porque no hay entrada por casa inequivoca.
+Que falta probar: Colocar manualmente cada PenEntrance en la abertura real del corral, activar PenAssistEnabled por casa cuando corresponda, conectar PenOpen a una puerta por casa, y validar en Play que G/F/corral/baston siguen funcionando.
+Riesgos conocidos: Mientras PenEntrance siga con NeedsManualPlacement=true y PenAssistEnabled=false, los rebanos usan fallback legacy global; no se modifico SheepPenGate.Script porque la unica puerta detectada sigue siendo global.
+
 Issue trabajado: #12 [Protected Change] Retirar proteccion de acantilados y restaurar comportamiento previo
 Archivos tocados: MANIFEST.md, STATUS.md, ServerScriptService/Pasture/M/Cfg.lua, ServerScriptService/Pasture/M/Sheep.lua
 Que cambio: Se retiro unicamente la proteccion de bordes del issue #11 por falsos positivos en pequenos desniveles. Se elimino Cfg.Ledge, Sheep:HasSafeGroundAhead(direction) y el bloqueo de MoveInDirection que detenia o desviaba ovejas por deteccion de borde.

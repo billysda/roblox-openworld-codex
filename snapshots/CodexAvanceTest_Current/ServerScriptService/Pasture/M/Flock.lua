@@ -49,6 +49,24 @@ local function getRightVector(direction)
 	return Vector3.xAxis
 end
 
+local function readNumberAttribute(instance, name, fallback)
+	local value = instance and instance:GetAttribute(name)
+	if typeof(value) == "number" then
+		return value
+	end
+
+	return fallback
+end
+
+local function readBooleanAttribute(instance, name, fallback)
+	local value = instance and instance:GetAttribute(name)
+	if typeof(value) == "boolean" then
+		return value
+	end
+
+	return fallback
+end
+
 function Flock.new(player, houseModel, runtimeFolder, sheepTemplate)
 	local self = setmetatable({}, Flock)
 
@@ -66,6 +84,18 @@ function Flock.new(player, houseModel, runtimeFolder, sheepTemplate)
 	self.RecallUntil = 0
 	self.CommandTarget = nil
 	self.CommandTargetUntil = 0
+	self.LegacyPenWarningPrinted = false
+
+	self.PenCenterPart = nil
+	self.PenEntrancePart = nil
+	self.PenRadius = Cfg.Pen.DefaultRadius
+	self.PenApproachRadius = Cfg.Pen.DefaultApproachRadius
+	self.PenEntryRadius = Cfg.Pen.DefaultEntryRadius
+	self.PenAssistEnabled = Cfg.Pen.AssistEnabled ~= false
+	self.LegacyPenPart = nil
+	self.LegacyApproachPart = nil
+
+	self:ResolvePenConfig()
 
 	self.Folder = Instance.new("Folder")
 	self.Folder.Name = "Flock_" .. player.UserId
@@ -74,6 +104,36 @@ function Flock.new(player, houseModel, runtimeFolder, sheepTemplate)
 	self:SpawnSheep()
 
 	return self
+end
+
+function Flock:ResolvePenConfig()
+	local houseModel = self.House
+	local penCenterName = Cfg.Names.PenCenter or Cfg.Names.CorralCenter or "CorralCenter"
+	local penEntranceName = Cfg.Names.PenEntrance or "PenEntrance"
+
+	local centerPart = houseModel and houseModel:FindFirstChild(penCenterName, true)
+	local entrancePart = houseModel and houseModel:FindFirstChild(penEntranceName, true)
+
+	if centerPart and centerPart:IsA("BasePart") then
+		self.PenCenterPart = centerPart
+	end
+
+	if entrancePart and entrancePart:IsA("BasePart") and not entrancePart:GetAttribute("NeedsManualPlacement") then
+		self.PenEntrancePart = entrancePart
+	end
+
+	self.PenRadius = readNumberAttribute(houseModel, "PenRadius", Cfg.Pen.DefaultRadius)
+	self.PenApproachRadius = readNumberAttribute(houseModel, "PenApproachRadius", Cfg.Pen.DefaultApproachRadius)
+	self.PenEntryRadius = readNumberAttribute(houseModel, "PenEntryRadius", Cfg.Pen.DefaultEntryRadius)
+	self.PenAssistEnabled = readBooleanAttribute(houseModel, "PenAssistEnabled", Cfg.Pen.AssistEnabled ~= false)
+
+	if not (self.PenCenterPart and self.PenEntrancePart and self.PenAssistEnabled) then
+		local pensFolder = workspace:FindFirstChild("SheepPens")
+		if pensFolder then
+			self.LegacyPenPart = pensFolder:FindFirstChild("SheepPenZone")
+			self.LegacyApproachPart = pensFolder:FindFirstChild("SheepPenApproachZone")
+		end
+	end
 end
 
 function Flock:SpawnSheep()
@@ -263,26 +323,33 @@ function Flock:UpdateBrain(now)
 	local center = self:CalculateCenter()
 	self.Center = center
 
-	local penPart = nil
-	local approachPart = nil
-	local pensFolder = workspace:FindFirstChild("SheepPens")
-	if pensFolder then
-		penPart = pensFolder:FindFirstChild("SheepPenZone")
-		approachPart = pensFolder:FindFirstChild("SheepPenApproachZone")
-	end
+	local penCenter, penEntrance, penRadius, penIsOpen = nil, nil, nil, false
+	local penApproachRadius, penEntryRadius, penAssistEnabled = nil, nil, false
 
-	local penCenter, penRadius, penIsOpen = nil, nil, false
-	local appCenter, appRadius = nil, nil
+	if self.PenCenterPart and self.PenCenterPart.Parent and self.PenEntrancePart and self.PenEntrancePart.Parent and self.PenAssistEnabled then
+		penCenter = self.PenCenterPart.Position
+		penEntrance = self.PenEntrancePart.Position
+		penRadius = self.PenRadius
+		penApproachRadius = self.PenApproachRadius
+		penEntryRadius = self.PenEntryRadius
+		penAssistEnabled = true
+		penIsOpen = self.House and self.House:GetAttribute("PenOpen") == true
+	elseif self.LegacyPenPart and self.LegacyPenPart:IsA("BasePart") then
+		if not self.LegacyPenWarningPrinted then
+			self.LegacyPenWarningPrinted = true
+			warn("[Flock] Usando corral legacy global para", self.House and self.House.Name or "house desconocida")
+		end
 
-	if penPart and penPart:IsA("BasePart") then
-		penCenter = penPart.Position
-		penRadius = math.min(penPart.Size.Y, penPart.Size.Z) / 2
-		penIsOpen = penPart:GetAttribute("IsOpen") or false
-	end
+		penCenter = self.LegacyPenPart.Position
+		penRadius = math.min(self.LegacyPenPart.Size.Y, self.LegacyPenPart.Size.Z) / 2
+		penIsOpen = self.LegacyPenPart:GetAttribute("IsOpen") or false
 
-	if approachPart and approachPart:IsA("BasePart") then
-		appCenter = approachPart.Position
-		appRadius = math.min(approachPart.Size.Y, approachPart.Size.Z) / 2
+		if self.LegacyApproachPart and self.LegacyApproachPart:IsA("BasePart") then
+			penEntrance = self.LegacyApproachPart.Position
+			penApproachRadius = math.min(self.LegacyApproachPart.Size.Y, self.LegacyApproachPart.Size.Z) / 2
+			penEntryRadius = Cfg.Pen.DefaultEntryRadius
+			penAssistEnabled = true
+		end
 	end
 
 	local shouldMove = false
@@ -395,10 +462,12 @@ function Flock:UpdateBrain(now)
 		Positions = self:GetPositions(),
 		GrazingZone = grazingZonePos,
 		PenCenter = penCenter,
+		PenEntrance = penEntrance,
 		PenRadius = penRadius,
+		PenApproachRadius = penApproachRadius,
+		PenEntryRadius = penEntryRadius,
 		PenIsOpen = penIsOpen,
-		PenApproachCenter = appCenter,
-		PenApproachRadius = appRadius,
+		PenAssistEnabled = penAssistEnabled,
 	}
 end
 
@@ -446,6 +515,10 @@ function Flock:Destroy()
 	self.MoveDirection = nil
 	self.CommandTarget = nil
 	self.CommandTargetUntil = 0
+	self.PenCenterPart = nil
+	self.PenEntrancePart = nil
+	self.LegacyPenPart = nil
+	self.LegacyApproachPart = nil
 end
 
 return Flock

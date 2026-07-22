@@ -23,10 +23,10 @@
 | ServerScriptService/DragonRaidAutoTest.server.lua | game.ServerScriptService.DragonRaidAutoTest | Script | 9 | encontrado | opcional, Disabled=true |
 | ServerScriptService/Pasture/Main.lua | game.ServerScriptService.Pasture.Main | Script | 192 | 054aae0bc9fa3d608cd978104fced967ce732a8b52c8d2d98ec171bce89356a0 | encontrado | actualizado issue #10, verificado contra Studio |
 | ServerScriptService/Pasture/Monitor.lua | game.ServerScriptService.Pasture.Monitor | Script/Module | 345 | encontrado | exportado en snapshot |
-| ServerScriptService/Pasture/M/Cfg.lua | game.ServerScriptService.Pasture.M.Cfg | ModuleScript | 345 | 109dc7342373d1689db5903b0e6ae021bb82c94aae64e3924689789614063ad2 | encontrado | actualizado issue #10, verificado contra Studio |
+| ServerScriptService/Pasture/M/Cfg.lua | game.ServerScriptService.Pasture.M.Cfg | ModuleScript | 354 | 66af8b0d6d5307a96598ca8a830ffac2914d4d0582331e397097269c1dacccbb | encontrado | actualizado issue #13, verificado contra Studio |
 | ServerScriptService/Pasture/M/Rand.lua | game.ServerScriptService.Pasture.M.Rand | Script/Module | 28 | encontrado | exportado en snapshot |
 | ServerScriptService/Pasture/M/House.lua | game.ServerScriptService.Pasture.M.House | ModuleScript | 177 | 4a0e05dfdc16e54aec46afa2af64a4abedb4858a2adf5fb9c911fc41e32bf509 | encontrado | actualizado issue #9, verificado contra Studio |
-| ServerScriptService/Pasture/M/Flock.lua | game.ServerScriptService.Pasture.M.Flock | ModuleScript | 451 | ee9ba6b45ca41073af9b1c442217d29e3d508dc478004d70a4f96575bda93c30 | encontrado | actualizado issue #10, verificado contra Studio |
-| ServerScriptService/Pasture/M/Sheep.lua | game.ServerScriptService.Pasture.M.Sheep | ModuleScript | 1893 | c0080ef844c4d58420eeb22de16b87195610f7e83e131552a0e12322e4f96caf | encontrado | actualizado issue #10, verificado contra Studio |
+| ServerScriptService/Pasture/M/Flock.lua | game.ServerScriptService.Pasture.M.Flock | ModuleScript | 524 | 5c9a2570b8d1935cfef38a3ec9a11861af4041c8cf4889e9543d7dd3bc1f960f | encontrado | actualizado issue #13, verificado contra Studio |
+| ServerScriptService/Pasture/M/Sheep.lua | game.ServerScriptService.Pasture.M.Sheep | ModuleScript | 1898 | 497faa9114e1e024d275cc490d55250b367ec6ca6c383670c9ced73d739b3cda | encontrado | actualizado issue #13, verificado contra Studio |
 | ServerScriptService/Pasture/M/GrazingService.lua | game.ServerScriptService.Pasture.M.GrazingService | ModuleScript | 262 | creado | exportado en snapshot, Pastoreo v0 |
 | StarterPlayerScripts/PastureClient.client.lua | game.StarterPlayer.StarterPlayerScripts.PastureClient | LocalScript | 88 | dbc6d760dbd96f8e4e657c48ea4e7ad51a376fc6ab22ed0ab9006cc01528b9ca | encontrado | actualizado issue #10, verificado contra Studio |

@@ -1666,10 +1666,15 @@ function Sheep:StepAI(now, flockData)
 			end
 
 			local movReq = flockData.IsMoving and flockData.MoveDirection
-			if flockData.PenApproachCenter and not movReq and not self.Model:GetAttribute("JustReleased") then
-				local distToApp = flatDistance(self.Root.Position, flockData.PenApproachCenter)
-				if distToApp <= flockData.PenApproachRadius and distToPen > 3 then
-					local toPen = getFlatDirection(flockData.PenCenter - self.Root.Position)
+			if flockData.PenAssistEnabled and flockData.PenEntrance and not movReq and not self.Model:GetAttribute("JustReleased") then
+				local distToEntrance = flatDistance(self.Root.Position, flockData.PenEntrance)
+				if distToEntrance <= flockData.PenApproachRadius and distToPen > 3 then
+					local target = flockData.PenEntrance
+					if distToEntrance <= (flockData.PenEntryRadius or 4) then
+						target = flockData.PenCenter
+					end
+
+					local toPen = getFlatDirection(target - self.Root.Position)
 					if toPen then
 						self.CalmDirection = nil
 						self.CalmMoveUntil = 0

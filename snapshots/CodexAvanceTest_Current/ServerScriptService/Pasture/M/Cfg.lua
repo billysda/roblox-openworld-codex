@@ -12,6 +12,8 @@ Cfg.Names = {
 	HousePromptPart = "ClaimPromptPart",
 	HousePrompt = "ProximityPrompt",
 	CorralCenter = "CorralCenter",
+	PenCenter = "CorralCenter",
+	PenEntrance = "PenEntrance",
 	SpawnFolder = "SheepSpawns",
 
 	Assets = "Assets",
@@ -106,6 +108,13 @@ Cfg.CommandTarget = {
 	PlayerFleeWeight = 0.25,
 
 	ForceImmediateResponse = true,
+}
+
+Cfg.Pen = {
+	DefaultRadius = 12,
+	DefaultApproachRadius = 16,
+	DefaultEntryRadius = 4,
+	AssistEnabled = true,
 }
 
 -- Movimiento de grupo por "zona de flujo", no siguiendo rígidamente a la líder.
