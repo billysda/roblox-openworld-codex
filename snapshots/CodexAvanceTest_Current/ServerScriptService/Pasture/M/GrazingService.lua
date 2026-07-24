@@ -2,12 +2,25 @@ local GrazingService = {}
 GrazingService.__index = GrazingService
 
 local Players = game:GetService("Players")
-local TweenService = game:GetService("TweenService")
 
 local Cfg = require(script.Parent.Cfg)
 
 local GOLDEN_ANGLE = math.pi * (3 - math.sqrt(5))
-local RING_COLOR = Color3.fromRGB(150, 255, 150)
+
+local WISP_COLORS = {
+	idle = ColorSequence.new(
+		Color3.fromRGB(132, 220, 118),
+		Color3.fromRGB(205, 255, 166)
+	),
+	active = ColorSequence.new(
+		Color3.fromRGB(116, 238, 105),
+		Color3.fromRGB(224, 255, 158)
+	),
+	qualified = ColorSequence.new(
+		Color3.fromRGB(178, 255, 112),
+		Color3.fromRGB(255, 244, 150)
+	),
+}
 
 local function flatVector(vector)
 	return Vector3.new(vector.X, 0, vector.Z)
@@ -24,6 +37,22 @@ local function flatDirection(vector)
 	end
 	return nil
 end
+
+local function makeWispSizeSequence(scale)
+	return NumberSequence.new({
+		NumberSequenceKeypoint.new(0, scale * 0.18),
+		NumberSequenceKeypoint.new(0.28, scale),
+		NumberSequenceKeypoint.new(0.72, scale * 0.72),
+		NumberSequenceKeypoint.new(1, scale * 0.22),
+	})
+end
+
+local WISP_TRANSPARENCY = NumberSequence.new({
+	NumberSequenceKeypoint.new(0, 1),
+	NumberSequenceKeypoint.new(0.16, 0.28),
+	NumberSequenceKeypoint.new(0.72, 0.52),
+	NumberSequenceKeypoint.new(1, 1),
+})
 
 function GrazingService.new(houseService)
 	local self = setmetatable({}, GrazingService)
@@ -114,6 +143,7 @@ function GrazingService:_cleanupLostPlayers(now)
 				player:SetAttribute("PastureGraceActive", false)
 			end
 			self.ActiveZones[userId] = nil
+			self.LastZonePosition[userId] = nil
 		end
 	end
 end
@@ -287,46 +317,56 @@ function GrazingService:_updateAssistance(flock, zoneData, insideCount, required
 	zoneData.ZonePart:SetAttribute("AssistActive", assistAllowed)
 end
 
-function GrazingService:_setRingTransparency(zoneData, transparency)
-	for _, segment in ipairs(zoneData.RingSegments or {}) do
-		if segment and segment.Parent then
-			segment.Transparency = transparency
-		end
+function GrazingService:_getWispStateProperties(state)
+	if state == "qualified" then
+		return
+			Cfg.Grazing.WispRateQualified or 1.45,
+			Cfg.Grazing.WispSpeedQualifiedMin or 1.7,
+			Cfg.Grazing.WispSpeedQualifiedMax or 2.9,
+			WISP_COLORS.qualified
 	end
+
+	if state == "active" then
+		return
+			Cfg.Grazing.WispRateActive or 0.95,
+			Cfg.Grazing.WispSpeedActiveMin or 1.35,
+			Cfg.Grazing.WispSpeedActiveMax or 2.35,
+			WISP_COLORS.active
+	end
+
+	return
+		Cfg.Grazing.WispRateIdle or 0.55,
+		Cfg.Grazing.WispSpeedIdleMin or 1.0,
+		Cfg.Grazing.WispSpeedIdleMax or 1.8,
+		WISP_COLORS.idle
 end
 
-function GrazingService:_pulseRing(zoneData)
-	self:_setRingTransparency(zoneData, Cfg.Grazing.ZoneTransparencyIdle)
-
-	local tweenInfo = TweenInfo.new(
-		Cfg.Grazing.ZonePulseDuration,
-		Enum.EasingStyle.Sine,
-		Enum.EasingDirection.InOut,
-		0,
-		true
-	)
-
-	for _, segment in ipairs(zoneData.RingSegments or {}) do
-		if segment and segment.Parent then
-			local tween = TweenService:Create(segment, tweenInfo, {
-				Transparency = Cfg.Grazing.ZoneTransparencyPulse,
-			})
-			tween:Play()
-		end
-	end
-end
-
-function GrazingService:_updateZoneVisual(zoneData, insideCount, qualified, now)
-	if insideCount > 0 or qualified then
-		self:_setRingTransparency(zoneData, Cfg.Grazing.ZoneTransparencyActive)
+function GrazingService:_setWispState(zoneData, state)
+	if zoneData.VisualState == state then
 		return
 	end
 
-	if now - (zoneData.LastPulse or 0) >= Cfg.Grazing.ZonePulseInterval then
-		zoneData.LastPulse = now
-		self:_pulseRing(zoneData)
-	elseif now - (zoneData.LastPulse or 0) > Cfg.Grazing.ZonePulseDuration * 2 + 0.1 then
-		self:_setRingTransparency(zoneData, Cfg.Grazing.ZoneTransparencyIdle)
+	local rate, minSpeed, maxSpeed, color = self:_getWispStateProperties(state)
+
+	for _, emitter in ipairs(zoneData.WispEmitters or {}) do
+		if emitter and emitter.Parent then
+			emitter.Rate = rate
+			emitter.Speed = NumberRange.new(minSpeed, maxSpeed)
+			emitter.Color = color
+		end
+	end
+
+	zoneData.VisualState = state
+	zoneData.ZonePart:SetAttribute("VisualState", state)
+end
+
+function GrazingService:_updateZoneVisual(zoneData, insideCount, qualified)
+	if qualified then
+		self:_setWispState(zoneData, "qualified")
+	elseif insideCount > 0 then
+		self:_setWispState(zoneData, "active")
+	else
+		self:_setWispState(zoneData, "idle")
 	end
 end
 
@@ -434,7 +474,7 @@ function GrazingService:_handlePlayerZone(player, house, flock, now, dt)
 		player:SetAttribute("PastureGrassEaten", progress)
 	end
 
-	self:_updateZoneVisual(zoneData, insideCount, qualified, now)
+	self:_updateZoneVisual(zoneData, insideCount, qualified)
 end
 
 function GrazingService:_getBasePosition(house, flock)
@@ -603,66 +643,85 @@ function GrazingService:_chooseZonePosition(player, house, flock)
 	return nil
 end
 
-function GrazingService:_createTerrainRing(parent, zonePosition)
-	local ringFolder = Instance.new("Folder")
-	ringFolder.Name = "TerrainRing"
-	ringFolder.Parent = parent
+function GrazingService:_createGroundWisps(parent, zonePosition)
+	local anchor = Instance.new("Part")
+	anchor.Name = "GrazingWispAnchor"
+	anchor.Anchored = true
+	anchor.CanCollide = false
+	anchor.CanTouch = false
+	anchor.CanQuery = false
+	anchor.CastShadow = false
+	anchor.Transparency = 1
+	anchor.Size = Vector3.new(1, 1, 1)
+	anchor.CFrame = CFrame.new(zonePosition)
+	anchor.Parent = parent
 
-	local segments = {}
-	local segmentCount = math.max(12, Cfg.Grazing.RingSegments or 32)
-	local radius = Cfg.Grazing.ZoneRadius or 23
-	local arcLength = (math.pi * 2 * radius) / segmentCount
-	local thickness = Cfg.Grazing.RingThickness or 0.85
-	local height = Cfg.Grazing.RingHeight or 0.12
-	local yOffset = Cfg.Grazing.RingYOffset or 0.12
+	local emitters = {}
+	local count = math.max(6, Cfg.Grazing.WispCount or 12)
+	local zoneRadius = Cfg.Grazing.ZoneRadius or 23
+	local radius = zoneRadius * (Cfg.Grazing.WispRadiusScale or 0.92)
+	local radiusJitter = Cfg.Grazing.WispRadiusJitter or 1.8
+	local yOffset = Cfg.Grazing.WispYOffset or 0.08
+	local spread = Cfg.Grazing.WispSpreadAngle or 12
+	local sizeScale = Cfg.Grazing.WispSize or 1.45
 
-	for index = 1, segmentCount do
-		local angle = ((index - 1) / segmentCount) * math.pi * 2
+	for index = 1, count do
+		-- La variación determinista evita una circunferencia mecánica sin cambiar
+		-- de forma cada vez que se actualiza el servidor.
+		local baseAngle = ((index - 1) / count) * math.pi * 2
+		local angle = baseAngle + math.sin(index * 2.17) * 0.055
+		local jitter = math.sin(index * 4.123 + 0.7) * radiusJitter
+		local pointRadius = math.max(2, radius + jitter)
 		local radial = Vector3.new(math.cos(angle), 0, math.sin(angle))
-		local tangent = Vector3.new(-math.sin(angle), 0, math.cos(angle))
-		local samplePosition = zonePosition + radial * radius
+		local samplePosition = zonePosition + radial * pointRadius
 		local result = self:_raycastGround(samplePosition)
 
-		local up = Vector3.yAxis
-		local segmentPosition = samplePosition
+		local worldPosition
 		if result then
-			up = result.Normal.Magnitude > 0.001 and result.Normal.Unit or Vector3.yAxis
-			segmentPosition = result.Position + up * yOffset
+			local normal = result.Normal.Magnitude > 0.001 and result.Normal.Unit or Vector3.yAxis
+			worldPosition = result.Position + normal * yOffset
 		else
-			segmentPosition = Vector3.new(samplePosition.X, zonePosition.Y + yOffset, samplePosition.Z)
+			worldPosition = Vector3.new(samplePosition.X, zonePosition.Y + yOffset, samplePosition.Z)
 		end
 
-		local right = tangent - up * tangent:Dot(up)
-		if right.Magnitude <= 0.001 then
-			right = Vector3.xAxis
-		else
-			right = right.Unit
-		end
-		local back = right:Cross(up)
-		if back.Magnitude <= 0.001 then
-			back = Vector3.zAxis
-		else
-			back = back.Unit
-		end
+		local attachment = Instance.new("Attachment")
+		attachment.Name = string.format("WispPoint%02d", index)
+		attachment.Position = anchor.CFrame:PointToObjectSpace(worldPosition)
+		attachment.Parent = anchor
 
-		local segment = Instance.new("Part")
-		segment.Name = string.format("RingSegment%02d", index)
-		segment.Anchored = true
-		segment.CanCollide = false
-		segment.CanTouch = false
-		segment.CanQuery = false
-		segment.CastShadow = false
-		segment.Material = Enum.Material.Neon
-		segment.Color = RING_COLOR
-		segment.Transparency = Cfg.Grazing.ZoneTransparencyIdle
-		segment.Size = Vector3.new(arcLength * 1.08, height, thickness)
-		segment.CFrame = CFrame.fromMatrix(segmentPosition, right, up, back)
-		segment.Parent = ringFolder
+		local emitter = Instance.new("ParticleEmitter")
+		emitter.Name = "GroundWisp"
+		emitter.Texture = Cfg.Grazing.WispTexture or "rbxasset://textures/particles/smoke_main.dds"
+		emitter.Enabled = true
+		emitter.Rate = Cfg.Grazing.WispRateIdle or 0.55
+		emitter.Lifetime = NumberRange.new(
+			Cfg.Grazing.WispLifetimeMin or 0.85,
+			Cfg.Grazing.WispLifetimeMax or 1.35
+		)
+		emitter.Speed = NumberRange.new(
+			Cfg.Grazing.WispSpeedIdleMin or 1.0,
+			Cfg.Grazing.WispSpeedIdleMax or 1.8
+		)
+		emitter.SpreadAngle = Vector2.new(spread, spread)
+		emitter.Acceleration = Vector3.new(0, 0.65, 0)
+		emitter.Drag = 1.15
+		emitter.VelocityInheritance = 0
+		emitter.EmissionDirection = Enum.NormalId.Top
+		emitter.Orientation = Enum.ParticleOrientation.FacingCameraWorldUp
+		emitter.Rotation = NumberRange.new(0, 360)
+		emitter.RotSpeed = NumberRange.new(-18, 18)
+		emitter.LightEmission = 0.7
+		emitter.LightInfluence = 0
+		emitter.ZOffset = 0.15
+		emitter.Color = WISP_COLORS.idle
+		emitter.Size = makeWispSizeSequence(sizeScale)
+		emitter.Transparency = WISP_TRANSPARENCY
+		emitter.Parent = attachment
 
-		table.insert(segments, segment)
+		table.insert(emitters, emitter)
 	end
 
-	return ringFolder, segments
+	return anchor, emitters
 end
 
 function GrazingService:_createZoneForPlayer(player, house, flock)
@@ -697,7 +756,7 @@ function GrazingService:_createZoneForPlayer(player, house, flock)
 	zonePart:SetAttribute("Source", source or "unknown")
 	zonePart.Parent = folder
 
-	local ringFolder, ringSegments = self:_createTerrainRing(folder, zonePosition)
+	local wispAnchor, wispEmitters = self:_createGroundWisps(folder, zonePosition)
 
 	local anchor = Instance.new("Part")
 	anchor.Name = "FlockLabelAnchor"
@@ -729,19 +788,22 @@ function GrazingService:_createZoneForPlayer(player, house, flock)
 	local zoneIndex = player:GetAttribute("PastureZoneIndex") or 1
 	self:_debug(string.format("Zona creada %s #%d (%s)", player.Name, zoneIndex, source or "unknown"))
 
-	return {
+	local zoneData = {
 		Folder = folder,
 		Position = zonePosition,
 		ZonePart = zonePart,
-		RingFolder = ringFolder,
-		RingSegments = ringSegments,
+		WispAnchor = wispAnchor,
+		WispEmitters = wispEmitters,
+		VisualState = nil,
 		Anchor = anchor,
 		TextLabel = textLabel,
 		BGui = billboard,
-		LastPulse = 0,
 		QualifiedUntil = 0,
 		Flock = flock,
 	}
+
+	self:_setWispState(zoneData, "idle")
+	return zoneData
 end
 
 function GrazingService:_updateMarkers()
