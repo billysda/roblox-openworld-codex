@@ -115,6 +115,10 @@ Cfg.Pen = {
 	DefaultApproachRadius = 16,
 	DefaultEntryRadius = 4,
 	AssistEnabled = true,
+
+	-- Ruta G: entrada -> centro del corral.
+	CommandEntranceDistance = 7,
+	CommandCenterDistance = 6,
 }
 
 -- Movimiento de grupo por "zona de flujo", no siguiendo rígidamente a la líder.
@@ -235,7 +239,7 @@ Cfg.Response = {
 }
 
 -- IDs actuales de animación.
--- Es buena práctica tenerlas aquí en Cfg, NO dentro de la lógica de Sheep.
+-- Es buena práctica tenerlas aquí, NO dentro de la lógica de Sheep.
 Cfg.Anim = {
 	Walk = "rbxassetid://98801271365263",
 	Trot = "rbxassetid://140710027312622",
@@ -321,8 +325,10 @@ Cfg.Grazing = {
 	Enabled = true,
 
 	RuntimeFolder = "PastureGrazingRuntime",
+	PointsFolder = "PastureGrazingPoints",
 
-	ZoneRadius = 18,
+	-- Área lógica. El visual se dibuja con un anillo separado.
+	ZoneRadius = 23,
 	ZoneHeight = 0.15,
 	ZoneDistanceMin = 55,
 	ZoneDistanceMax = 90,
@@ -330,8 +336,18 @@ Cfg.Grazing = {
 	GrassGoal = 100,
 	GrassPerSecond = 8,
 
-	RequireAllSheep = true,
+	-- Para 2 ovejas siguen siendo necesarias las 2; en rebaños mayores ~75%.
+	RequireAllSheep = false,
+	RequiredFraction = 0.75,
 	MinSheepInside = 2,
+	ExitGraceSeconds = 1.75,
+
+	-- La ayuda solo aparece cuando ya hay una oveja dentro y otra está cerca.
+	AssistEnabled = true,
+	AssistDistance = 10,
+	AssistSpeed = 6.5,
+	AssistInnerPadding = 5,
+	AssistRefreshDuration = 0.65,
 
 	CheckInterval = 0.25,
 	MarkerUpdateInterval = 0.5,
@@ -341,7 +357,21 @@ Cfg.Grazing = {
 
 	ZoneYOffset = 0.08,
 	LabelHeight = 8,
-	
+
+	-- Elección segura de posición.
+	CandidateAttempts = 16,
+	TerrainSampleCount = 8,
+	MaxTerrainHeightSpread = 6,
+	MinGroundNormalY = 0.78,
+	GroundRayHeight = 70,
+	GroundRayDepth = 160,
+
+	-- Anillo visual adaptado al terreno.
+	RingSegments = 32,
+	RingThickness = 0.85,
+	RingHeight = 0.12,
+	RingYOffset = 0.12,
+
 	ZonePulseInterval = 2.5,
 	ZonePulseDuration = 0.45,
 	ZoneTransparencyIdle = 0.78,
