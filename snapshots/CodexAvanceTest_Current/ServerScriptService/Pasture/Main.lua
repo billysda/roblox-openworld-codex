@@ -13,6 +13,8 @@ local M = Root:WaitForChild("M")
 local Cfg = require(M:WaitForChild("Cfg"))
 local House = require(M:WaitForChild("House"))
 
+local PASTURE_STAFF_ATTRIBUTE = "PastureStaff"
+
 local function mustGet(parent, name)
 	local obj = parent:WaitForChild(name, 10)
 
@@ -64,6 +66,21 @@ local function setupCollisionGroups()
 	pcall(function()
 		PhysicsService:CollisionGroupSetCollidable("Sheep", "Players", false)
 	end)
+end
+
+local function hasEquippedPastureStaff(player)
+	local character = player and player.Character
+	if not character then
+		return false
+	end
+
+	for _, child in ipairs(character:GetChildren()) do
+		if child:IsA("Tool") and child:GetAttribute(PASTURE_STAFF_ATTRIBUTE) == true then
+			return true
+		end
+	end
+
+	return false
 end
 
 setupCollisionGroups()
@@ -128,6 +145,10 @@ whistleEvent.OnServerEvent:Connect(function(player)
 end)
 
 commandTargetEvent.OnServerEvent:Connect(function(player, targetPosition)
+	if not hasEquippedPastureStaff(player) then
+		return
+	end
+
 	if not isValidTargetPosition(targetPosition) then
 		return
 	end
