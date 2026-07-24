@@ -327,7 +327,7 @@ Cfg.Grazing = {
 	RuntimeFolder = "PastureGrazingRuntime",
 	PointsFolder = "PastureGrazingPoints",
 
-	-- Área lógica. El visual se dibuja con un anillo separado.
+	-- Área lógica invisible. Los wisps son solo una guía aproximada.
 	ZoneRadius = 23,
 	ZoneHeight = 0.15,
 	ZoneDistanceMin = 55,
@@ -366,17 +366,25 @@ Cfg.Grazing = {
 	GroundRayHeight = 70,
 	GroundRayDepth = 160,
 
-	-- Anillo visual adaptado al terreno.
-	RingSegments = 32,
-	RingThickness = 0.85,
-	RingHeight = 0.12,
-	RingYOffset = 0.12,
-
-	ZonePulseInterval = 2.5,
-	ZonePulseDuration = 0.45,
-	ZoneTransparencyIdle = 0.78,
-	ZoneTransparencyPulse = 0.45,
-	ZoneTransparencyActive = 0.38,
+	-- Visual orgánico: una sola Part invisible con Attachments y partículas.
+	WispCount = 12,
+	WispRadiusScale = 0.92,
+	WispRadiusJitter = 1.8,
+	WispYOffset = 0.08,
+	WispTexture = "rbxasset://textures/particles/smoke_main.dds",
+	WispRateIdle = 0.55,
+	WispRateActive = 0.95,
+	WispRateQualified = 1.45,
+	WispLifetimeMin = 0.85,
+	WispLifetimeMax = 1.35,
+	WispSpeedIdleMin = 1.0,
+	WispSpeedIdleMax = 1.8,
+	WispSpeedActiveMin = 1.35,
+	WispSpeedActiveMax = 2.35,
+	WispSpeedQualifiedMin = 1.7,
+	WispSpeedQualifiedMax = 2.9,
+	WispSpreadAngle = 12,
+	WispSize = 1.45,
 
 	Debug = true,
 }
