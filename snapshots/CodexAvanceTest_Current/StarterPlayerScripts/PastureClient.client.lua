@@ -9,6 +9,7 @@ local remoteFolder = ReplicatedStorage:WaitForChild("PastureRemote")
 local whistleEvent = remoteFolder:WaitForChild("Whistle")
 local commandTargetEvent = remoteFolder:WaitForChild("CommandTarget", 10)
 local MAX_COMMAND_DISTANCE = 220
+local PASTURE_STAFF_ATTRIBUTE = "PastureStaff"
 
 if not commandTargetEvent then
 	warn("[PastureClient] CommandTarget remote no encontrado; F sigue disponible.")
@@ -19,6 +20,21 @@ local marker = nil
 local function getPlayerRoot()
 	local character = player.Character
 	return character and character:FindFirstChild("HumanoidRootPart")
+end
+
+local function getEquippedPastureStaff()
+	local character = player.Character
+	if not character then
+		return nil
+	end
+
+	for _, child in ipairs(character:GetChildren()) do
+		if child:IsA("Tool") and child:GetAttribute(PASTURE_STAFF_ATTRIBUTE) == true then
+			return child
+		end
+	end
+
+	return nil
 end
 
 local function flatDistance(a, b)
@@ -74,6 +90,10 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
 	if input.KeyCode == Enum.KeyCode.F then
 		whistleEvent:FireServer()
 	elseif input.KeyCode == Enum.KeyCode.G and commandTargetEvent then
+		if not getEquippedPastureStaff() then
+			return
+		end
+
 		local position = getMouseGroundPosition()
 		if position then
 			local root = getPlayerRoot()
