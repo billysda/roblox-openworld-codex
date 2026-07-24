@@ -1,6 +1,13 @@
 # Grazing v1: zona semialeatoria, asistencia suave y anillo adaptado al terreno
 
-Diseño aprobado para implementar sobre `feature/pasture-command-target-v0`.
+Implementación preparada en la rama:
+
+`feature/grazing-v1-assisted-terrain`
+
+Commits principales:
+
+- `85225fad191ee11e20b0c58d5cdf5d25d110b0d2` — configuración.
+- `9d8dabc914ded8ac8b78064999bc50b8843f5c15` — lógica y visual de la zona.
 
 ## Objetivo
 
@@ -8,28 +15,29 @@ Mejorar la zona de pastoreo sin convertirla en un imán global:
 
 - radio lógico de 23 studs;
 - el jugador lleva el rebaño hasta la zona;
-- cuando al menos una oveja entra, las ovejas restantes que estén como máximo 10 studs fuera del borde reciben una guía suave hacia puntos interiores distintos;
+- cuando al menos una oveja entra, las restantes que estén como máximo 10 studs fuera del borde reciben una guía suave;
 - la ayuda nunca reemplaza una orden G/F activa;
 - para 2 ovejas siguen siendo necesarias las 2; en rebaños mayores se requiere aproximadamente el 75%;
 - una salida breve no pausa inmediatamente el consumo: gracia de 1.75 segundos;
 - el disco sólido se reemplaza visualmente por un anillo de segmentos ajustados individualmente al terreno;
 - la posición se elige primero desde puntos validados opcionales y, si no existen, mediante muestreo procedural con rechazo de pendientes/desniveles excesivos.
 
-## Configuración esperada
+## Configuración implementada
 
-Extender `Cfg.Grazing` con valores equivalentes a:
+`Cfg.Grazing` incluye valores equivalentes a:
 
 ```lua
 ZoneRadius = 23,
 RequireAllSheep = false,
 RequiredFraction = 0.75,
 MinSheepInside = 2,
+ExitGraceSeconds = 1.75,
 
 AssistEnabled = true,
 AssistDistance = 10,
 AssistSpeed = 6.5,
 AssistInnerPadding = 5,
-ExitGraceSeconds = 1.75,
+AssistRefreshDuration = 0.65,
 
 PointsFolder = "PastureGrazingPoints",
 CandidateAttempts = 16,
@@ -43,130 +51,109 @@ RingHeight = 0.12,
 RingYOffset = 0.12,
 ```
 
-## Conteo requerido
-
-Reemplazar el cálculo actual por:
+También se conservan en `Cfg.Pen` los valores de la ruta del issue #15:
 
 ```lua
-local fraction = Cfg.Grazing.RequiredFraction or 0.75
-local fractionalRequired = math.ceil(activeSheepCount * fraction)
-local requestedMinimum = Cfg.Grazing.MinSheepInside or 1
-local requiredCount = math.max(requestedMinimum, fractionalRequired)
-requiredCount = math.clamp(requiredCount, 1, math.max(activeSheepCount, 1))
+CommandEntranceDistance = 7,
+CommandCenterDistance = 6,
 ```
 
-Resultados:
+## Conteo requerido
+
+El número requerido se calcula por fracción, limitado por el tamaño real del rebaño activo:
 
 - 1 activa -> 1 requerida;
 - 2 activas -> 2 requeridas;
 - 4 activas -> 3 requeridas;
 - 8 activas -> 6 requeridas.
 
+Una oveja capturada ya no hace imposible completar la actividad: el requisito se ajusta al número de ovejas activas.
+
 ## Gracia de salida
 
-Cada `zoneData` debe incluir `QualifiedUntil = 0`.
+Cada zona mantiene `QualifiedUntil`.
 
-Cuando `insideCount >= requiredCount`:
+Cuando se alcanza el número requerido, se renueva una ventana de 1.75 segundos. Si una oveja pisa fuera brevemente, el consumo continúa durante esa ventana. Si permanece fuera más tiempo, el progreso se pausa, pero no se reinicia.
 
-```lua
-zoneData.QualifiedUntil = os.clock() + (Cfg.Grazing.ExitGraceSeconds or 1.75)
-```
-
-La zona cuenta como apta mientras:
-
-```lua
-local qualified = insideCount >= requiredCount
-	or os.clock() <= (zoneData.QualifiedUntil or 0)
-```
-
-Durante la gracia el pasto sigue avanzando. Añadir atributo de jugador `PastureGraceActive` para diagnóstico.
-
-## Asistencia suave por oveja
-
-`GrazingService` debe limpiar y escribir estos atributos en cada modelo de oveja:
+El jugador recibe el atributo de diagnóstico:
 
 ```text
-GrazingAssistActive: boolean
-GrazingAssistTarget: Vector3
+PastureGraceActive
 ```
 
-La asistencia solo se activa cuando:
+## Asistencia suave
 
-- `Cfg.Grazing.AssistEnabled` es true;
+La asistencia se implementa exclusivamente desde `GrazingService`, reutilizando el movimiento tranquilo ya existente de cada objeto `Sheep`.
+
+No fue necesario modificar `Sheep.lua`.
+
+Condiciones:
+
 - al menos una oveja ya está dentro;
-- todavía no se alcanza el número requerido;
-- la oveja asistida está fuera del radio;
-- su distancia al centro es menor o igual a `ZoneRadius + AssistDistance`.
+- todavía falta alguna para alcanzar el requisito;
+- la oveja asistida está fuera del círculo pero a no más de 10 studs del borde;
+- no existe G, F ni otro movimiento activo del rebaño;
+- la oveja no está capturada ni marcada como `JustReleased`.
 
-Cada oveja debe recibir un punto interior distinto y estable calculado desde `sheep.Index`, no todas el centro. Usar un ángulo dorado o equivalente y limitar el destino a `ZoneRadius - AssistInnerPadding`.
+Cada oveja recibe un destino interior distinto calculado con ángulo dorado. Durante la ayuda se usan:
 
-Al completar/destruir la zona, liberar jugador, capturar una oveja o dejar de cumplir las condiciones, establecer `GrazingAssistActive=false` y eliminar `GrazingAssistTarget`.
-
-## Sheep.lua
-
-En el bloque de GrazingZone, antes del rebote interno, leer los atributos. Solo obedecer la asistencia cuando:
-
-```lua
-not movementRequested
-and not commandActive
-and not self.Model:GetAttribute("JustReleased")
+```text
+GrazingAssistActive
+GrazingAssistTarget
+CalmMoveState = GrazingAssist
 ```
 
-Si `GrazingAssistActive == true` y `GrazingAssistTarget` es Vector3:
-
-```lua
-local toTarget = getFlatDirection(assistTarget - self.Root.Position)
-if toTarget then
-	self.CalmDirection = nil
-	self.CalmMoveUntil = 0
-	self.CalmChosenSpeed = nil
-	self:ResetMovementReaction()
-	self:MoveInDirection(toTarget, Cfg.Grazing.AssistSpeed or 6.5, "GrazingAssist")
-	return
-end
-```
-
-Conservar el rebote interno existente para ovejas que ya están dentro.
+Cuando las condiciones dejan de cumplirse, `GrazingService` limpia únicamente el movimiento tranquilo que él mismo había creado.
 
 ## Visual adaptado al terreno
 
-`GrazingZone` permanece como Part lógica invisible (`Transparency=1`) porque el conteo usa distancia horizontal.
+`GrazingZone` continúa existiendo como Part lógica invisible (`Transparency = 1`) para no romper la lectura existente de `Flock`.
 
-Crear un folder `TerrainRing` con 32 segmentos no colisionables. Para cada segmento:
+El visual real es un folder `TerrainRing` con 32 segmentos:
 
-1. calcular su punto sobre la circunferencia;
-2. lanzar un raycast vertical individual;
-3. colocar el segmento sobre el resultado + `RingYOffset`;
-4. orientarlo tangente al anillo;
-5. usar Material Neon y el verde actual.
+1. cada segmento calcula su punto de la circunferencia;
+2. hace su propio raycast vertical;
+3. se coloca sobre el suelo;
+4. se orienta usando la normal del terreno;
+5. conserva el material Neon y los estados de transparencia activos/pulsantes.
 
-El pulso y estado activo deben cambiar la transparencia de los segmentos, no del disco lógico. No crear un disco relleno visible.
+Ya no se muestra un disco relleno atravesando lomas o caminos.
 
 ## Elección semialeatoria segura
 
-Primero buscar BaseParts bajo `Workspace.PastureGrazingPoints`. Un punto puede tener atributo `HouseId`; nil/0 significa global. Elegir uno compatible y evitar repetir inmediatamente el último punto del jugador.
+Primero se buscan BaseParts bajo:
 
-Cuando la carpeta no exista o no tenga puntos compatibles, probar hasta `CandidateAttempts` posiciones procedurales entre `ZoneDistanceMin` y `ZoneDistanceMax`.
+`Workspace.PastureGrazingPoints`
 
-Para aceptar una posición:
+Un punto puede usar `HouseId`; nil o 0 significa global. Se evita repetir inmediatamente el último punto del jugador.
 
-- raycast en el centro y en `TerrainSampleCount` puntos del perímetro;
-- todos deben encontrar suelo;
-- ningún `Normal.Y` puede ser menor que `MinGroundNormalY`;
-- la diferencia entre altura máxima y mínima no puede superar `MaxTerrainHeightSpread`.
+Cuando la carpeta no existe o no ofrece un punto válido, se prueban hasta 16 posiciones procedurales entre `ZoneDistanceMin` y `ZoneDistanceMax`.
 
-Si ningún intento pasa, usar el mejor candidato encontrado y emitir un warning de diagnóstico, sin bloquear la creación de la zona.
+Cada candidato se comprueba en el centro y alrededor del perímetro. Se rechaza cuando:
 
-## Archivos autorizados
+- falta suelo en alguna muestra;
+- la pendiente supera `MinGroundNormalY`;
+- la diferencia de alturas supera `MaxTerrainHeightSpread`.
 
-- `ServerScriptService.Pasture.M.Cfg`
-- `ServerScriptService.Pasture.M.GrazingService`
-- `ServerScriptService.Pasture.M.Sheep`
-- copias correspondientes en snapshot
-- `MANIFEST.md`
-- `STATUS.md`
+Si ningún candidato pasa por completo, se usa el mejor encontrado y se imprime una advertencia de diagnóstico.
 
-No modificar Flock, corral, PenEntrance, puertas, Bastón, Homestead ni Workspace en esta fase.
+## Archivos modificados por ChatGPT
+
+- `snapshots/CodexAvanceTest_Current/ServerScriptService/Pasture/M/Cfg.lua`
+- `snapshots/CodexAvanceTest_Current/ServerScriptService/Pasture/M/GrazingService.lua`
+- este documento.
+
+No se modificaron:
+
+- `Sheep.lua`;
+- `Flock.lua`;
+- corral o `PenEntrance`;
+- puertas;
+- Bastón;
+- Homestead;
+- Workspace.
+
+Antigravity debe copiar exactamente `Cfg.lua` y `GrazingService.lua` desde esta rama al DataModel actual, sin reemplazar el `Flock.lua` del issue #15.
 
 ## Pruebas
 
