@@ -26,7 +26,7 @@ PredatorCfg.Spawn = {
 PredatorCfg.Fox = {
 	DetectionRadius = 70,
 	ChaseSpeed = 16,
-	PounceSpeed = 12,
+	PounceSpeed = 8.5,
 	FleeSpeed = 17,
 
 	AttackStartDistance = 5.8,
