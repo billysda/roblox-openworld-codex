@@ -1,0 +1,17 @@
+FOX TERRAIN ALIGNMENT V1 — TRANSFER GUARD
+
+SOURCE OF TRUTH:
+branch: fix/fox-terrain-alignment-v1
+spec: docs/patches/fox-terrain-alignment-v1.md
+
+RULES:
+1. Inspect the CURRENT Studio Source of ServerScriptService.Predator.M.FoxController first.
+2. Apply only the exact surgical changes defined in the spec.
+3. Do not replace the whole FoxController.lua from an older branch.
+4. Preserve all local Issue #22 Fox AI changes.
+5. Do not modify PredatorCfg, CaptureService, PredatorService, Pasture, Sheep, Flock, Grazing, Homestead, corral, G/F, audio, animations or FoxTemplate structure.
+6. Reuse the existing StepPhysics ground raycast. Add zero raycasts.
+7. Max terrain tilt = 28 degrees. Normal smoothing coefficient = 10.
+8. Test Chase, Pounce, Carry/Flee and stopped Fox on slopes.
+9. Sync final Studio FoxController back to the current working snapshot and update MANIFEST/STATUS.
+10. No reset --hard, no push --force, no merge to main.
