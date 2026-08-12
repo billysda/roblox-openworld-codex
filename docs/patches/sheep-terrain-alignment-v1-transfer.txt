@@ -1,0 +1,1 @@
+Antigravity: aplicar de forma quirúrgica sobre el Sheep.lua ACTUAL de Roblox Studio la especificación exacta de docs/patches/sheep-terrain-alignment-v1.md. No reemplazar Sheep.lua completo desde una rama vieja. Preservar todos los cambios locales actuales. Validar en Play y sincronizar snapshot/hash después.
