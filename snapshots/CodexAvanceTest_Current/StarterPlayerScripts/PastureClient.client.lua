@@ -8,14 +8,28 @@ local player = Players.LocalPlayer
 local remoteFolder = ReplicatedStorage:WaitForChild("PastureRemote")
 local whistleEvent = remoteFolder:WaitForChild("Whistle")
 local commandTargetEvent = remoteFolder:WaitForChild("CommandTarget", 10)
+
 local MAX_COMMAND_DISTANCE = 220
 local PASTURE_STAFF_ATTRIBUTE = "PastureStaff"
 
 if not commandTargetEvent then
-	warn("[PastureClient] CommandTarget remote no encontrado; F sigue disponible.")
+	warn("[PastureClient] CommandTarget remote no encontrado; F/silbido sigue disponible.")
 end
 
 local marker = nil
+local characterChildAddedConnection = nil
+local characterChildRemovedConnection = nil
+
+local playerGui = player:WaitForChild("PlayerGui")
+local pastureGui = playerGui:WaitForChild("PastureHUD", 10)
+local mobileActions = pastureGui and pastureGui:FindFirstChild("MobileActions") or nil
+local whistleButton = mobileActions and mobileActions:FindFirstChild("WhistleButton") or nil
+local commandButton = mobileActions and mobileActions:FindFirstChild("CommandButton") or nil
+local commandReticle = pastureGui and pastureGui:FindFirstChild("CommandReticle") or nil
+
+if not pastureGui then
+	warn("[PastureClient] PastureHUD no encontrado; los controles PC siguen disponibles.")
+end
 
 local function getPlayerRoot()
 	local character = player.Character
@@ -41,9 +55,7 @@ local function flatDistance(a, b)
 	return (Vector3.new(a.X, 0, a.Z) - Vector3.new(b.X, 0, b.Z)).Magnitude
 end
 
-local function getMouseGroundPosition()
-	local mouse = player:GetMouse()
-	local ray = mouse.UnitRay
+local function getRaycastParams()
 	local params = RaycastParams.new()
 	params.FilterType = Enum.RaycastFilterType.Exclude
 	params.IgnoreWater = true
@@ -52,12 +64,29 @@ local function getMouseGroundPosition()
 		params.FilterDescendantsInstances = { player.Character }
 	end
 
-	local result = Workspace:Raycast(ray.Origin, ray.Direction * 500, params)
-	if result then
-		return result.Position
+	return params
+end
+
+local function raycastGround(origin, direction)
+	local result = Workspace:Raycast(origin, direction, getRaycastParams())
+	return result and result.Position or nil
+end
+
+local function getMouseGroundPosition()
+	local mouse = player:GetMouse()
+	local ray = mouse.UnitRay
+	return raycastGround(ray.Origin, ray.Direction * 500)
+end
+
+local function getCenterScreenGroundPosition()
+	local camera = Workspace.CurrentCamera
+	if not camera then
+		return nil
 	end
 
-	return nil
+	local viewportSize = camera.ViewportSize
+	local ray = camera:ViewportPointToRay(viewportSize.X * 0.5, viewportSize.Y * 0.5)
+	return raycastGround(ray.Origin, ray.Direction * 500)
 end
 
 local function showMarker(position)
@@ -82,27 +111,141 @@ local function showMarker(position)
 	Debris:AddItem(marker, 2)
 end
 
+local function requestWhistle()
+	whistleEvent:FireServer()
+end
+
+local function requestCommandTarget(positionProvider)
+	if not commandTargetEvent then
+		return
+	end
+
+	if not getEquippedPastureStaff() then
+		return
+	end
+
+	local position = positionProvider and positionProvider() or nil
+	if not position then
+		return
+	end
+
+	local root = getPlayerRoot()
+	if not root then
+		return
+	end
+
+	if flatDistance(position, root.Position) > MAX_COMMAND_DISTANCE then
+		warn("[PastureClient] Destino demasiado lejos para el rebaño.")
+		return
+	end
+
+	showMarker(position)
+	commandTargetEvent:FireServer(position)
+end
+
+local function syncButtonFallback(button)
+	if not button then
+		return
+	end
+
+	local icon = button:FindFirstChild("Icon")
+	local fallback = button:FindFirstChild("Fallback")
+	if not fallback or not fallback:IsA("GuiObject") then
+		return
+	end
+
+	local function refresh()
+		local hasImage = icon and icon:IsA("ImageLabel") and icon.Image ~= ""
+		fallback.Visible = not hasImage
+	end
+
+	refresh()
+
+	if icon and icon:IsA("ImageLabel") then
+		icon:GetPropertyChangedSignal("Image"):Connect(refresh)
+	end
+end
+
+local function refreshTouchUi()
+	local usingTouch = UserInputService.PreferredInput == Enum.PreferredInput.Touch
+	local hasStaff = getEquippedPastureStaff() ~= nil
+
+	if mobileActions then
+		mobileActions.Visible = usingTouch
+	end
+
+	if whistleButton then
+		whistleButton.Visible = usingTouch
+	end
+
+	if commandButton then
+		commandButton.Visible = usingTouch and hasStaff and commandTargetEvent ~= nil
+	end
+
+	if commandReticle then
+		commandReticle.Visible = usingTouch and hasStaff and commandTargetEvent ~= nil
+	end
+end
+
+local function bindCharacter(character)
+	if characterChildAddedConnection then
+		characterChildAddedConnection:Disconnect()
+		characterChildAddedConnection = nil
+	end
+
+	if characterChildRemovedConnection then
+		characterChildRemovedConnection:Disconnect()
+		characterChildRemovedConnection = nil
+	end
+
+	if character then
+		characterChildAddedConnection = character.ChildAdded:Connect(function(child)
+			if child:IsA("Tool") then
+				refreshTouchUi()
+			end
+		end)
+
+		characterChildRemovedConnection = character.ChildRemoved:Connect(function(child)
+			if child:IsA("Tool") then
+				refreshTouchUi()
+			end
+		end)
+	end
+
+	task.defer(refreshTouchUi)
+end
+
+syncButtonFallback(whistleButton)
+syncButtonFallback(commandButton)
+refreshTouchUi()
+
+UserInputService:GetPropertyChangedSignal("PreferredInput"):Connect(refreshTouchUi)
+player.CharacterAdded:Connect(bindCharacter)
+
+if player.Character then
+	bindCharacter(player.Character)
+end
+
+if whistleButton and whistleButton:IsA("GuiButton") then
+	whistleButton.Activated:Connect(function()
+		requestWhistle()
+	end)
+end
+
+if commandButton and commandButton:IsA("GuiButton") then
+	commandButton.Activated:Connect(function()
+		requestCommandTarget(getCenterScreenGroundPosition)
+	end)
+end
+
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
 	if gameProcessed then
 		return
 	end
 
 	if input.KeyCode == Enum.KeyCode.F then
-		whistleEvent:FireServer()
-	elseif input.KeyCode == Enum.KeyCode.G and commandTargetEvent then
-		if not getEquippedPastureStaff() then
-			return
-		end
-
-		local position = getMouseGroundPosition()
-		if position then
-			local root = getPlayerRoot()
-			if root and flatDistance(position, root.Position) <= MAX_COMMAND_DISTANCE then
-				showMarker(position)
-				commandTargetEvent:FireServer(position)
-			else
-				warn("[PastureClient] Destino demasiado lejos para el rebaño.")
-			end
-		end
+		requestWhistle()
+	elseif input.KeyCode == Enum.KeyCode.G then
+		requestCommandTarget(getMouseGroundPosition)
 	end
 end)
