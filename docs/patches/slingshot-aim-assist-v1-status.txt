@@ -1,0 +1,6 @@
+Reference head before Antigravity transfer: 147a5bffb0f81aabc53d510f630070b313828023
+Files written by ChatGPT for Aim Assist v1:
+- snapshots/CodexAvanceTest_Current/StarterPlayerScripts/SlingshotAimAssist.lua
+- docs/patches/slingshot-aim-assist-v1.md
+- docs/patches/slingshot-aim-assist-v1-transfer.txt
+- docs/patches/slingshot-aim-assist-v1-notes.md
