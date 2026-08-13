@@ -1,0 +1,14 @@
+TRANSFER GUARD - SLINGSHOT AIM ASSIST V1
+
+Use the CURRENT Roblox Studio SlingshotController source.
+Do not replace the full controller from an older branch.
+
+Written by ChatGPT:
+- StarterPlayerScripts/SlingshotAimAssist.lua
+- docs/patches/slingshot-aim-assist-v1.md
+
+Integrate only the specified controller hooks into the current Studio script.
+Preserve all existing battle movement, animations, chicken/storage guards, ammo UI, Fox repel server integration, and local commits.
+
+Do not add RemoteEvents.
+Do not merge main.
