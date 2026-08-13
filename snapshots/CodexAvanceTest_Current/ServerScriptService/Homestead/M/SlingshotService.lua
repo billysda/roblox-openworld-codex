@@ -40,6 +40,17 @@ local function findEquippedSlingshot(character)
 	return nil
 end
 
+local function findPredatorModel(instance)
+	local current = instance
+	while current and current ~= Workspace do
+		if current:IsA("Model") and current:GetAttribute("PredatorType") ~= nil then
+			return current
+		end
+		current = current.Parent
+	end
+	return nil
+end
+
 function SlingshotService.new(inventoryService, remotes)
 	local self = setmetatable({}, SlingshotService)
 
@@ -143,6 +154,31 @@ function SlingshotService:GetSafeOrigin(player, requestedOrigin)
 	return fallback
 end
 
+function SlingshotService:MarkPredatorHit(player, hit, charge)
+	if not player or not hit or not hit.Instance then
+		return nil
+	end
+
+	local predator = findPredatorModel(hit.Instance)
+	if not predator or predator:GetAttribute("PredatorType") ~= "Fox" then
+		return nil
+	end
+
+	local serial = predator:GetAttribute("PredatorSlingshotHitSerial")
+	if typeof(serial) ~= "number" then
+		serial = 0
+	end
+
+	-- Write payload first and serial last. The Fox controller treats the serial
+	-- increment as the atomic notification that a validated server hit occurred.
+	predator:SetAttribute("PredatorSlingshotHitByUserId", player.UserId)
+	predator:SetAttribute("PredatorSlingshotHitCharge", charge)
+	predator:SetAttribute("PredatorSlingshotHitPosition", hit.Position)
+	predator:SetAttribute("PredatorSlingshotHitSerial", serial + 1)
+
+	return predator
+end
+
 function SlingshotService:Fire(player, origin, direction, charge)
 	local cfg = getCfg()
 	local itemId = cfg.AmmoItem or "Egg"
@@ -228,6 +264,7 @@ function SlingshotService:Fire(player, origin, direction, charge)
 		hitPosition = hit.Position
 		hitNormal = hit.Normal
 		hitInstanceName = hit.Instance and hit.Instance.Name or ""
+		self:MarkPredatorHit(player, hit, charge)
 	end
 
 	local result = {
