@@ -1,0 +1,23 @@
+ANTIGRAVITY TRANSFER - Slingshot Anime Shot v2
+
+Use Studio ACTUAL sources. Do not replace full current scripts from stale branches.
+
+Reference branch: feature/fox-slingshot-rescue-v1
+Reference head after v2 spec: 8722dc56face4e4a931258cd7dde035ff61d6b9b
+
+Copy exact new ModuleScript:
+StarterPlayer.StarterPlayerScripts.SlingshotAnimeTrajectory
+from:
+snapshots/CodexAvanceTest_Current/StarterPlayerScripts/SlingshotAnimeTrajectory.lua
+
+Then apply exact surgical patches from:
+docs/patches/slingshot-anime-shot-v2.md
+
+to CURRENT Studio:
+- StarterPlayer.StarterPlayerScripts.SlingshotAimAssist
+- StarterPlayer.StarterPlayerScripts.SlingshotController
+- ServerScriptService.Homestead.M.SlingshotService
+- ServerScriptService.Homestead.M.HomeCfg
+
+Preserve Issue #29 Fox rescue and Issue #30 aim assist.
+No reset --hard. No push --force. No merge main.
