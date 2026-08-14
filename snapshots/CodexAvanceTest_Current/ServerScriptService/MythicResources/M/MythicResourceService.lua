@@ -5,6 +5,18 @@ local Workspace = game:GetService("Workspace")
 local MythicResourceService = {}
 MythicResourceService.__index = MythicResourceService
 
+local TEST_CLUSTER_LAYOUT = {
+	{ ResourceId = "Mandrake", Offset = Vector3.new(-8, 0, -9) },
+	{ ResourceId = "EmberBloom", Offset = Vector3.new(0, 0, -10) },
+	{ ResourceId = "MoonDewLotus", Offset = Vector3.new(8, 0, -9) },
+	{ ResourceId = "Mandrake", Offset = Vector3.new(-10, 0, -14) },
+	{ ResourceId = "EmberBloom", Offset = Vector3.new(0, 0, -15) },
+	{ ResourceId = "MoonDewLotus", Offset = Vector3.new(10, 0, -14) },
+	{ ResourceId = "Mandrake", Offset = Vector3.new(-12, 0, -19) },
+	{ ResourceId = "EmberBloom", Offset = Vector3.new(0, 0, -20) },
+	{ ResourceId = "MoonDewLotus", Offset = Vector3.new(12, 0, -19) },
+}
+
 local function ensureFolder(parent, name)
 	local folder = parent:FindFirstChild(name)
 	if folder and folder:IsA("Folder") then
@@ -42,6 +54,7 @@ local function prepareWorldInstance(instance)
 		instance.Anchored = true
 		instance.CanCollide = false
 		instance.CanTouch = false
+		instance.CanQuery = false
 		return
 	end
 	for _, descendant in ipairs(instance:GetDescendants()) do
@@ -49,6 +62,7 @@ local function prepareWorldInstance(instance)
 			descendant.Anchored = true
 			descendant.CanCollide = false
 			descendant.CanTouch = false
+			descendant.CanQuery = false
 		end
 	end
 end
@@ -148,6 +162,91 @@ function MythicResourceService:_spawnMarker(marker)
 		ResourceId = resourceId,
 	}
 	return true
+end
+
+function MythicResourceService:_removeMarkerNode(marker)
+	if not marker or not marker:IsA("BasePart") then
+		return
+	end
+	local spawnId = tostring(marker:GetAttribute("MythicSpawnId") or marker.Name)
+	local node = self.NodesBySpawnId[spawnId]
+	if node then
+		if node.Model and node.Model.Parent then
+			node.Model:Destroy()
+		end
+		self.NodesBySpawnId[spawnId] = nil
+	end
+end
+
+function MythicResourceService:_groundTestPosition(player, desiredPosition, fallbackY)
+	local params = RaycastParams.new()
+	params.FilterType = Enum.RaycastFilterType.Exclude
+	params.IgnoreWater = true
+	local exclude = { self.SpawnFolder, self.Runtime }
+	if player.Character then
+		table.insert(exclude, player.Character)
+	end
+	params.FilterDescendantsInstances = exclude
+
+	local origin = desiredPosition + Vector3.new(0, 40, 0)
+	local result = Workspace:Raycast(origin, Vector3.new(0, -100, 0), params)
+	if result then
+		return result.Position + Vector3.new(0, 0.03, 0)
+	end
+	return Vector3.new(desiredPosition.X, fallbackY, desiredPosition.Z)
+end
+
+function MythicResourceService:ClearTestSpawnsForPlayer(player)
+	local userId = player and player.UserId
+	if not userId then
+		return
+	end
+
+	for _, marker in ipairs(self.SpawnFolder:GetChildren()) do
+		if marker:IsA("BasePart") and marker:GetAttribute("MythicTestOwnerUserId") == userId then
+			self:_removeMarkerNode(marker)
+			marker:Destroy()
+		end
+	end
+end
+
+function MythicResourceService:SpawnTestClusterForPlayer(player, rootCFrame)
+	if not player or typeof(rootCFrame) ~= "CFrame" then
+		return 0
+	end
+
+	self:ClearTestSpawnsForPlayer(player)
+
+	local fallbackY = rootCFrame.Position.Y - 3
+	local created = 0
+	for index, spec in ipairs(TEST_CLUSTER_LAYOUT) do
+		if self.Catalog.IsValid(spec.ResourceId) then
+			local desired = rootCFrame:PointToWorldSpace(spec.Offset)
+			local groundPosition = self:_groundTestPosition(player, desired, fallbackY)
+			local spawnId = string.format("Test_%d_%02d_%s", player.UserId, index, spec.ResourceId)
+
+			local marker = Instance.new("Part")
+			marker.Name = spawnId
+			marker.Size = Vector3.new(0.4, 0.4, 0.4)
+			marker.Transparency = 1
+			marker.Anchored = true
+			marker.CanCollide = false
+			marker.CanTouch = false
+			marker.CanQuery = false
+			marker.CFrame = CFrame.new(groundPosition) * CFrame.Angles(0, math.rad((index * 47) % 360), 0)
+			marker:SetAttribute("MythicResourceId", spec.ResourceId)
+			marker:SetAttribute("MythicSpawnId", spawnId)
+			marker:SetAttribute("MythicTestOwnerUserId", player.UserId)
+			marker:SetAttribute("MythicTestSpawn", true)
+			marker:SetAttribute("RespawnSeconds", 8)
+			marker.Parent = self.SpawnFolder
+
+			self:_spawnMarker(marker)
+			created += 1
+		end
+	end
+
+	return created
 end
 
 function MythicResourceService:_collect(prompt, player)
