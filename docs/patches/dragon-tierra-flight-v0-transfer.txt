@@ -1,0 +1,62 @@
+# Antigravity Transfer — DragonTierra Flight v0
+
+Execute the implementation exactly from `docs/patches/dragon-tierra-flight-v0.md` using the Roblox Studio MCP connection.
+
+IMPORTANT:
+- The code/source for the new system is the specification in the repository branch `feature/dragon-tierra-flight-v0`.
+- Work on the CURRENT Roblox Studio/DataModel state.
+- Do not overwrite existing Studio scripts from old snapshots.
+- Do not modify the legacy dragon system.
+- Do not merge to `main`.
+- Do not use reset --hard or force push.
+
+Before writing anything:
+1. Confirm `Workspace.DragonTierraRoblox` exists and still has the #40 preparation.
+2. Confirm `HumanoidRootPart`, `FlightAttachment`, `LinearVelocity`, `AlignOrientation`, `DragonRiderSeat`, `DragonGroundCollider`, `AnimationController`, and `Animator` exist.
+3. Confirm the legacy `Workspace.DragonModel` and legacy dragon scripts are untouched.
+4. Inspect the actual existing Walk and Flight animation objects/IDs in Studio and use them; do not invent IDs.
+
+Then implement the new independent system under clearly separated folders:
+- `ServerScriptService.DragonTierra.Server`
+- `ServerScriptService.DragonTierra.Server.Flight`
+- `ServerScriptService.DragonTierra.Shared`
+- `StarterPlayer.StarterPlayerScripts.DragonTierra.Client`
+- `StarterPlayer.StarterPlayerScripts.DragonTierra.Client.Flight`
+- `ReplicatedStorage.DragonTierra.Remotes`
+
+Do not create a monolithic flight script and do not connect to the legacy DragonFlightService.
+
+Use the prepared rig's `HumanoidRootPart` and `FlightAttachment` constraints. Server-authoritative state and physics; client sends input intent only.
+
+Implement only the basic flight states:
+`Grounded -> Takeoff -> Flying -> Landing -> Grounded`.
+
+Controls:
+- W forward
+- S reverse
+- A turn left
+- D turn right
+- E ascend
+- Q descend
+- Space takeoff/landing toggle
+- Shift boost
+
+Keep all tunables in `DragonTierraFlightConfig.lua` using the values from the patch spec.
+
+Do not implement ground walking in this task.
+
+Test in Play and provide evidence for:
+- mount and occupant authorization
+- takeoff
+- flight control
+- vertical control
+- boost
+- orientation/banking
+- flight animation
+- landing and safe ground raycast
+- restoration to grounded state
+- legacy dragon unchanged
+- zero red errors
+
+Update snapshot/MANIFEST/STATUS and commit with:
+`feat: implement independent DragonTierra flight system`
