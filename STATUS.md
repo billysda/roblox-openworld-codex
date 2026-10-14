@@ -1,3 +1,17 @@
+# ESTADO ACTUAL — Integración multiagente (2026-10-13)
+
+**OpenWorld Codex exclusivamente.** Este bloque actualiza el estado del flujo de desarrollo, no la validación de gameplay. El resto del documento contiene historial previo (junio-julio de 2026) y puede referirse a versiones anteriores de Studio.
+
+- Place identificado por Antigravity: `CodexAvanceTest` / `Lugar de Cazador32262: 06202026_3`, PlaceId `100008359356261`; captura en modo Edit, PlaceVersion reportada `202`.
+- Snapshot real fusionado: PR #41, merge `a4881d5d71b4e77106204ba10923287c1f142a56`: 4.064 instancias representadas y 84 scripts Source en `docs/studio_snapshot/current/`. No incluye subárbol masivo `RBX_ANIMSAVES` ni voxel Terrain/mesh binario; no se modificó Studio al fusionar.
+- Protocolo multiagente fusionado: PR #42, merge `c8d22b189739c86e2d639b8c4f80a70681b10d23`: `docs/agent_sync/PROTOCOL.md`, watcher remoto `tools/agent_sync/watch_repo.py`, reglas en `AGENTS.md`, y 84 enlaces del índice corregidos.
+- **Tarea pendiente de Antigravity:** Issue #43: configurar y probar watcher local, comprobar SHA de código actual, reconciliar rutas Studio/repo y habilitar consultas de diferencias. No afirmar que esté instalado hasta respuesta del agente.
+- GPT-6 programa y publica GitHub; Argon 4 Web entrega código/parches que Antigravity publica; versiones A/B se desarrollan en ramas diferentes desde el mismo SHA, y las ramas no se mezclan hasta decisión del usuario.
+- **Protección:** `docs/studio_snapshot/current/scripts/` es archivo histórico exportado, no árbol de código canónico para inyección. No escribir en Studio ni reactivar legacy V1 sin autorización y backup.
+- **Pruebas:** el informe de Antigravity reporta cero errores de Output y telemetría R4.1, pero requiere validación posterior del usuario en Play real. No equiparar capturas Edit con pruebas Play.
+
+---
+
 # STATUS.md
 
 ## Estado actual
