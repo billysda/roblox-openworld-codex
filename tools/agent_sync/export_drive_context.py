@@ -99,6 +99,24 @@ def atomic_write(path: Path, raw: bytes) -> None:
     tmp.replace(path)
 
 
+def _write_current_pointer(out: Path, ref: str, revision_name: str, commit: str,
+                           files: int, parts: int) -> None:
+    state = (
+        "# OpenWorld Codex — contexto listo para Argon 4\n\\n"
+        f"- **Repositorio:** `{REPO_NAME}`\\n"
+        f"- **Ref:** `{ref}`\\n"
+        f"- **Commit exacto:** `{commit}`\\n"
+        f"- **Archivos:** {files} | **Partes:** {parts}\\n"
+        f"- **Ubicacion:** `revisions/{revision_name}/`\\n"
+        f"- **Manifest:** `revisions/{revision_name}/MANIFEST.json`\\n"
+        f"- **Sello de finalizacion local:** `revisions/{revision_name}/READY.json`\n\\n"
+        "**Importante:** este archivo NO confirma subida a Google Drive. "
+        "Verificar con Drive para escritorio y con Gemini Web que la revision completa "
+        "sea accesible y corresponda al mismo commit antes de entregar una tarea.\\n"
+    )
+    atomic_write(out / "CURRENT_SYNC_STATE.md", state.encode("utf-8"))
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", type=Path, required=True, help="Ruta real de carpeta sincronizada Drive")
@@ -149,10 +167,23 @@ def main() -> None:
                         "part": f"CODE_PART_{part_index:04d}.md"})
     flush()
 
-    revision_dir = args.out / "revisions" / commit
+    revision_name = commit + ("-inventory" if args.inventory else "")
+    revision_dir = args.out / "revisions" / revision_name
     ready = revision_dir / "READY.json"
     if ready.exists():
-        raise RuntimeError(f"Revision ya publicada localmente, no sobrescribir: {ready}")
+        existing = json.loads((revision_dir / "MANIFEST.json").read_text("utf-8"))
+        if existing.get("commitSha") != commit or existing.get("inventoryIncluded") != args.inventory:
+            raise RuntimeError("Revision previa no coincide con el commit/modo")
+        for part in existing.get("parts", []):
+            p = revision_dir / part["file"]
+            if not p.exists() or sha256(p.read_bytes()) != part["sha256"]:
+                raise RuntimeError(f"Parte ausente o alterada: {p}")
+        _write_current_pointer(args.out, args.ref, revision_name, commit,
+                               existing["fileCount"], existing["partCount"])
+        print(json.dumps({"commitSha": commit, "alreadyReady": True,
+                          "driveUploadConfirmed": False,
+                          "localOutput": str(revision_dir)}, indent=2))
+        return
     revision_dir.mkdir(parents=True, exist_ok=True)
 
     part_entries = []
@@ -177,20 +208,7 @@ def main() -> None:
         {"commitSha": commit, "manifestSha256": sha256(manifest_bytes),
          "partCount": len(parts), "fileCount": len(entries)},
         indent=2) + "\n").encode())
-    state = (
-        "# OpenWorld Codex — contexto listo para Argon 4\n\n"
-        f"- **Repositorio:** `{REPO_NAME}`\n"
-        f"- **Ref:** `{args.ref}`\n"
-        f"- **Commit exacto:** `{commit}`\n"
-        f"- **Archivos:** {len(entries)} | **Partes:** {len(parts)}\n"
-        f"- **Ubicacion:** `revisions/{commit}/`\n"
-        f"- **Manifest:** `revisions/{commit}/MANIFEST.json`\n"
-        f"- **Sello de finalizacion local:** `revisions/{commit}/READY.json`\n\n"
-        "**Importante:** este archivo NO confirma subida a Google Drive. "
-        "Verificar con Drive para escritorio y con Gemini Web que la revision completa "
-        "sea accesible y corresponda al mismo commit antes de entregar una tarea.\n"
-    )
-    atomic_write(args.out / "CURRENT_SYNC_STATE.md", state.encode("utf-8"))
+    _write_current_pointer(args.out, args.ref, revision_name, commit, len(entries), len(parts))
     print(json.dumps({"commitSha": commit, "parts": len(parts),
                       "files": len(entries), "localOutput": str(revision_dir),
                       "driveUploadConfirmed": False}, indent=2))
