@@ -1,3 +1,12 @@
+# 2026-10-14 — R4.2 Organic Motion, preset MAX solicitado por usuario
+
+- **Estado:** SOLO actualizado en rama GitHub de PR #53, **todavía NO aplicado/testeado en Studio**.
+- **Issue #52:** el usuario vio R4.2 original y confirmó que los efectos eran demasiado sutiles; pidió **intensidad al máximo**.
+- **Único Source de gameplay cambiado:** `src/WyvernFlightV2/R42/OrganicMotionConfigR42.lua` (preset extremo; sin tocar el LocalScript, R4.1, física, cámara ni controles). Tail 90° acumulados / sensibilidad 8°/s, neck 25°, head yaw 12° / pitch 6°, aleteo 0.65x–1.80x.
+- **Documentación y rollback:** `docs/wyvern/R42_MAX_INTENSITY.md`. Antigravity debe respaldar config Studio existente, instalar sólo ese ModuleScript, comprobar poses y clipping en Play, y reportar. Si se deforma, reducir al mayor valor estable o restaurar config anterior. No fusionar PR antes de validación.
+
+---
+
 # Propuesta en desarrollo — WyvernFlightV2 R4.2 Organic Motion (2026-10-14)
 
 - **Issue:** #52; **rama:** `feat/wyvern-r42-organic-motion` desde base `75cfb7a2737ad682a35a4d3f4cd1f09e4e143109`.
