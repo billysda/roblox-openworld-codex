@@ -1,0 +1,27 @@
+{
+  "canonicalSha256": "a1207ddcb91fede3e303a440b32963f49ec62ab57d5cf39f4d3f5caaf61bf805",
+  "capturedAtUtc": "2026-10-13T23:34:13.547869+00:00",
+  "missingCoreServices": [],
+  "mode": "Edit",
+  "placeId": 100008359356261,
+  "placeName": "CodexAvanceTest",
+  "referenceGitRevision": "c77ed4d6d5c297341c029b7191d1955095325f3d",
+  "schemaVersion": 1,
+  "services": {
+    "Lighting": 208,
+    "ReplicatedStorage": 31,
+    "ServerScriptService": 30,
+    "ServerStorage": 1281,
+    "SoundService": 5,
+    "StarterGui": 2,
+    "StarterPlayer": 18,
+    "TextChatService": 9,
+    "Workspace": 2480
+  },
+  "spatialEntries": 789,
+  "studioId": "2a31625c-df37-4a3e-926f-b2be6244e2ab",
+  "totalInstances": 4064,
+  "universeId": 10360931945,
+  "warning": "Sin Source, binarios Mesh/CSG, assets externos, voxels Terrain o garantía de estado Play",
+  "workspaceInstances": 2480
+}

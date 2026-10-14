@@ -1,0 +1,22 @@
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local remotes = ReplicatedStorage:WaitForChild("DragonSheepTestRemotes")
+local frame = script.Parent
+
+print("[UI] DragonSheepTestGui ready")
+
+frame.StartBiteTestButton.MouseButton1Click:Connect(function()
+    print("[ClientUI] START BITE TEST clicked")
+    remotes.StartBiteTest:FireServer()
+end)
+frame.ResetBiteTestButton.MouseButton1Click:Connect(function()
+    print("[ClientUI] RESET clicked")
+    remotes.ResetBiteTest:FireServer()
+end)
+frame.PreviewWalkButton.MouseButton1Click:Connect(function()
+    print("[ClientUI] PREVIEW WALK clicked")
+    remotes.PreviewWalkOnly:FireServer()
+end)
+frame.PreviewBiteButton.MouseButton1Click:Connect(function()
+    print("[ClientUI] PREVIEW BITE clicked")
+    remotes.PreviewBiteOnly:FireServer()
+end)
