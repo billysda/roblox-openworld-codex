@@ -1,3 +1,23 @@
+# 2026-10-14 — R4.2 Organic Motion, preset MAX solicitado por usuario
+
+- **Estado:** SOLO actualizado en rama GitHub de PR #53, **todavía NO aplicado/testeado en Studio**.
+- **Issue #52:** el usuario vio R4.2 original y confirmó que los efectos eran demasiado sutiles; pidió **intensidad al máximo**.
+- **Único Source de gameplay cambiado:** `src/WyvernFlightV2/R42/OrganicMotionConfigR42.lua` (preset extremo; sin tocar el LocalScript, R4.1, física, cámara ni controles). Tail 90° acumulados / sensibilidad 8°/s, neck 25°, head yaw 12° / pitch 6°, aleteo 0.65x–1.80x.
+- **Documentación y rollback:** `docs/wyvern/R42_MAX_INTENSITY.md`. Antigravity debe respaldar config Studio existente, instalar sólo ese ModuleScript, comprobar poses y clipping en Play, y reportar. Si se deforma, reducir al mayor valor estable o restaurar config anterior. No fusionar PR antes de validación.
+
+---
+
+# Propuesta en desarrollo — WyvernFlightV2 R4.2 Organic Motion (2026-10-14)
+
+- **Issue:** #52; **rama:** `feat/wyvern-r42-organic-motion` desde base `75cfb7a2737ad682a35a4d3f4cd1f09e4e143109`.
+- **Nuevos Source completos en GitHub:** `src/WyvernFlightV2/R42/OrganicMotionR42.client.lua` (único LocalScript adicional) y `src/WyvernFlightV2/R42/OrganicMotionConfigR42.lua` (config ModuleScript adicional).
+- **Cambios:** playback adaptativo del loop existente 0.85x–1.20x; 7 huesos de cola con retardo, 3 de cuello y 1 de cabeza con microgestos. No se modifica física/cámara/input de R4.1 ni se añade audio.
+- **R4.1 intacta:** la prueba A/B consiste en deshabilitar el addon o `OrganicMotionEnabled=false` antes de Play. Al usuario le gusta el control actual R4.1; preservarlo es obligatorio.
+- **PENDIENTE:** Antigravity debe guardar copia y SHA-256 de los scripts actuales de Studio (el snapshot Edit anterior es archivo histórico), comprobar los huesos/ejes reales, integrar **sólo dos instancias nuevas**, ejecutar pruebas en Play y documentar resultados. **GPT-6 no ha instalado ni probado el addon en Studio**. PR sin merge hasta autorización del usuario.
+- **Guía:** `docs/wyvern/R42_ORGANIC_MOTION.md`. **Riesgos:** interacción de Bone.Transform con Animator, ejes locales aún sin calibrar, playback cambia la animación entera.
+
+---
+
 # ESTADO ACTUAL — Integración multiagente (2026-10-13)
 
 **OpenWorld Codex exclusivamente.** Este bloque actualiza el estado del flujo de desarrollo, no la validación de gameplay. El resto del documento contiene historial previo (junio-julio de 2026) y puede referirse a versiones anteriores de Studio.
