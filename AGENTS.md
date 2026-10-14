@@ -46,3 +46,16 @@ Al terminar un issue, escribir en STATUS.md:
 - Qué cambió
 - Qué falta probar
 - Riesgos conocidos
+
+## Colaboración GPT-6 / Gemini Argon 4 / Antigravity
+
+**Leer siempre** `docs/agent_sync/PROTOCOL.md` antes de comenzar tareas o sincronizar Studio.
+
+- Dos programadores pueden crear versiones competidoras A/B en ramas separadas **desde el mismo base_sha**. Nunca mezclar las dos variantes antes de elegir una ganadora.
+- GPT-6 escribe en GitHub mediante commits/PR; Gemini Argon 4 Web entrega parches basados en SHA a Antigravity; Antigravity publica en GitHub y sincroniza el Place local.
+- Antigravity debe obtener cambios GitHub frescos e inspeccionar código y diffs completos: `python tools/agent_sync/watch_repo.py --once`; si falta el estado revisado, no inyectar nada. Puede activar `--watch` localmente cuando lo configure el usuario.
+- Antes de empezar cualquier tarea: verificación del último SHA remoto de `main` y de la rama/PR relevante; no fiarse de resúmenes, memorias, importaciones web o snapshots antiguos.
+- No sobreescribir Studio desde `main` sin comparar rutas/Source SHA y realizar backup. Todas las correcciones realizadas en Studio deben volver a una rama de GitHub.
+- La carpeta `docs/studio_snapshot/current/scripts` es evidencia archivada del estado de Studio en Edit (2026-10-13): **NO** es automáticamente árbol canónico de despliegue.
+- Los scripts V1 legacy WyvernFlight deshabilitados se mantienen deshabilitados; no mezclar Dark Fantasy World.
+- Para cada integración: publicar SHA de commit fuente, rutas exactas, SHA-256 de Source Studio, resultado de pruebas y cambios del DataModel en la PR o issue. No declarar Play PASS sin la prueba correspondiente.
