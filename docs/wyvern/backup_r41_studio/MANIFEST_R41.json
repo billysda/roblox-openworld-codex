@@ -1,0 +1,38 @@
+{
+  "StarterPlayer.StarterPlayerScripts.WyvernFlightV2.Input": {
+    "file": "StarterPlayer_StarterPlayerScripts_WyvernFlightV2_Input.client.lua",
+    "className": "LocalScript",
+    "bytes": 14282,
+    "sha256": "edbef32bb2e2109b7f9cfe5c29fdc03c9c25a3e8b10c8558bd3c4b77736f9539"
+  },
+  "ReplicatedStorage.WyvernFlightV2.FlightAimState": {
+    "file": "ReplicatedStorage_WyvernFlightV2_FlightAimState.lua",
+    "className": "ModuleScript",
+    "bytes": 2672,
+    "sha256": "af3efed8ce1399131c0bd9f1d03d7c46f0d79feedeeefc6d30f4f020835a9ca7"
+  },
+  "StarterPlayer.StarterPlayerScripts.WyvernFlightV2.FlightAnimation": {
+    "file": "StarterPlayer_StarterPlayerScripts_WyvernFlightV2_FlightAnimation.client.lua",
+    "className": "LocalScript",
+    "bytes": 2016,
+    "sha256": "130d9cc6ded8323485319214fb40f14b1e8b832d01f3c44c91e101e31504ebe2"
+  },
+  "StarterPlayer.StarterPlayerScripts.WyvernFlightV2.FlightCamera": {
+    "file": "StarterPlayer_StarterPlayerScripts_WyvernFlightV2_FlightCamera.client.lua",
+    "className": "LocalScript",
+    "bytes": 14895,
+    "sha256": "f7aea132226df60061611d5ffde4bb2202f5d31c2bdc20b73c715be75f1ca3cc"
+  },
+  "ReplicatedStorage.WyvernFlightV2.Config.WyvernFlightConfig": {
+    "file": "ReplicatedStorage_WyvernFlightV2_Config_WyvernFlightConfig.lua",
+    "className": "ModuleScript",
+    "bytes": 7770,
+    "sha256": "f8351d59bf637069d90b74ba136b0bb1cd43b09450c740c2b25ddce5a1143906"
+  },
+  "ServerScriptService.WyvernFlightV2.FlightController": {
+    "file": "ServerScriptService_WyvernFlightV2_FlightController.server.lua",
+    "className": "Script",
+    "bytes": 17692,
+    "sha256": "80f43a9dabb28175ebb967323dfc7ce57feb5d249fdb46951847a5b3a02326e5"
+  }
+}
