@@ -43,13 +43,13 @@ if not wyvern then
     return
 end
 
-local dtRoot = wyvern:FindFirstChild("DT_Root")
-local skeletonRoot = wyvern:FindFirstChild("RootPart")
-local animationController = wyvern:FindFirstChildOfClass("AnimationController")
-local animator = animationController and animationController:FindFirstChildOfClass("Animator")
+local dtRoot = wyvern:WaitForChild("DT_Root", 10)
+local skeletonRoot = wyvern:WaitForChild("RootPart", 10)
+local animationController = wyvern:WaitForChild("AnimationController", 10)
+local animator = animationController and (animationController:FindFirstChildOfClass("Animator") or animationController:WaitForChild("Animator", 10))
 
 if not dtRoot or not skeletonRoot or not animator then
-    warn("[Wyvern R4.2] DT_Root, RootPart o Animator faltante. Addon inactivo.")
+    warn("[Wyvern R4.2] DT_Root, RootPart o Animator faltante tras espera. Addon inactivo.")
     return
 end
 
