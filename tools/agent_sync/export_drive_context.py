@@ -102,17 +102,17 @@ def atomic_write(path: Path, raw: bytes) -> None:
 def _write_current_pointer(out: Path, ref: str, revision_name: str, commit: str,
                            files: int, parts: int) -> None:
     state = (
-        "# OpenWorld Codex — contexto listo para Argon 4\n\\n"
-        f"- **Repositorio:** `{REPO_NAME}`\\n"
-        f"- **Ref:** `{ref}`\\n"
-        f"- **Commit exacto:** `{commit}`\\n"
-        f"- **Archivos:** {files} | **Partes:** {parts}\\n"
-        f"- **Ubicacion:** `revisions/{revision_name}/`\\n"
-        f"- **Manifest:** `revisions/{revision_name}/MANIFEST.json`\\n"
-        f"- **Sello de finalizacion local:** `revisions/{revision_name}/READY.json`\n\\n"
+        "# OpenWorld Codex — contexto listo para Argon 4\n\n"
+        f"- **Repositorio:** `{REPO_NAME}`\n"
+        f"- **Ref:** `{ref}`\n"
+        f"- **Commit exacto:** `{commit}`\n"
+        f"- **Archivos:** {files} | **Partes:** {parts}\n"
+        f"- **Ubicacion:** `revisions/{revision_name}/`\n"
+        f"- **Manifest:** `revisions/{revision_name}/MANIFEST.json`\n"
+        f"- **Sello de finalizacion local:** `revisions/{revision_name}/READY.json`\n\n"
         "**Importante:** este archivo NO confirma subida a Google Drive. "
         "Verificar con Drive para escritorio y con Gemini Web que la revision completa "
-        "sea accesible y corresponda al mismo commit antes de entregar una tarea.\\n"
+        "sea accesible y corresponda al mismo commit antes de entregar una tarea.\n"
     )
     atomic_write(out / "CURRENT_SYNC_STATE.md", state.encode("utf-8"))
 
