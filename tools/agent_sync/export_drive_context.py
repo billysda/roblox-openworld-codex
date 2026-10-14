@@ -29,6 +29,7 @@ DOCS = {
     "AGENTS.md", "CODEX_RULES.md", "STATUS.md", "ROBLOX_STRUCTURE.md",
     "docs/agent_sync/PROTOCOL.md",
     "docs/agent_sync/BASELINE_REVIEW.md",
+    "docs/agent_sync/DRIVE_BRIDGE.md",
     "docs/studio_snapshot/current/INDEX.md",
     "docs/studio_snapshot/current/CONNECTIONS.md",
     "docs/studio_snapshot/current/SCRIPT_INDEX.md",
