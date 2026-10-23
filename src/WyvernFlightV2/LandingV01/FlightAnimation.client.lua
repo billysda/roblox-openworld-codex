@@ -4,6 +4,7 @@
 
 local Workspace = game:GetService("Workspace")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
 
 local flightFolder = ReplicatedStorage:WaitForChild("WyvernFlightV2")
 local config = require(flightFolder:WaitForChild("Config"):WaitForChild("WyvernFlightConfig"))
@@ -89,8 +90,29 @@ end
 dtRoot:GetAttributeChangedSignal("Wyvern_MotionState"):Connect(transition)
 dtRoot:GetAttributeChangedSignal("Wyvern_GroundSpeed"):Connect(function()
     if currentName == "Run" and tracks.Run then
-        local speed = dtRoot:GetAttribute("Wyvern_GroundSpeed") or 16
-        tracks.Run:AdjustSpeed(math.clamp(speed / 16, 0.5, 1.5))
+        local commandSpeed = dtRoot:GetAttribute("Wyvern_GroundSpeed") or 0
+        local nominal = dtRoot:GetAttribute("Wyvern_RunNominalSpeed") or 30
+        local physicalVelocity = dtRoot.AssemblyLinearVelocity
+        local physicalSpeed = Vector3.new(physicalVelocity.X, 0, physicalVelocity.Z).Magnitude
+        -- Pies acompasan movimiento REAL. Evita que animacion vaya por delante.
+        local speed = math.min(commandSpeed, physicalSpeed + 3)
+        tracks.Run:AdjustSpeed(math.clamp(speed / nominal, 0.25, 1.35))
+    end
+end)
+
+-- Valor local SOLO para esta camara del jinete; TimePosition es fase real del
+-- AnimationTrack, no ruido aleatorio ni cronometro independiente.
+RunService.RenderStepped:Connect(function()
+    local track = tracks.Run
+    if currentName == "Run" and track and track.IsPlaying then
+        local length = track.Length
+        if length > 0 then
+            dtRoot:SetAttribute("Wyvern_RunPhaseLocal", (track.TimePosition / length) % 1)
+            return
+        end
+    end
+    if dtRoot:GetAttribute("Wyvern_RunPhaseLocal") ~= -1 then
+        dtRoot:SetAttribute("Wyvern_RunPhaseLocal", -1)
     end
 end)
 
