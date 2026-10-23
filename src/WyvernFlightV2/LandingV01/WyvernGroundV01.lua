@@ -92,10 +92,22 @@ function Ground:Sense()
         maxGroundY = math.max(maxGroundY, hit.Position.Y)
     end
     local groundSpread = maxGroundY - minGroundY
+    -- En una pendiente uniforme la diferencia de ALTURA entre garras puede
+    -- superar 2.5 studs aunque el piso sea transitable. En su lugar, medir
+    -- discontinuidad respecto al plano de contacto bajo el centro.
+    local maxPlaneDeviation = 0
+    local planeNormal = center.Normal
+    for _, sample in pairs(hits) do
+        local delta = sample.Position - center.Position
+        maxPlaneDeviation = math.max(maxPlaneDeviation, math.abs(delta:Dot(planeNormal)))
+    end
     return {
-        valid = valid >= 3 and frontSupported and rearSupported and groundSpread <= 2.5
-            and normal.Y >= Ground.CONFIG.MaximumSlopeNormalY,
+        valid = valid >= 3 and frontSupported and rearSupported
+            and maxPlaneDeviation <= 1.25
+            and normal.Y >= Ground.CONFIG.MaximumSlopeNormalY
+            and planeNormal.Y >= Ground.CONFIG.MaximumSlopeNormalY,
         heightSpread = groundSpread,
+        planeDeviation = maxPlaneDeviation,
         clearance = clearance,  -- 0 significa altura de apoyo calibrada
         groundY = center.Position.Y,
         normal = normal,
