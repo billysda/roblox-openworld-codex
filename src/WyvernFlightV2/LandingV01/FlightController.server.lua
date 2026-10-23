@@ -543,7 +543,8 @@ RunService.Heartbeat:Connect(function(dt)
 
 	-- El mouse NO dirige al dragon en tierra: solo A/D gira el cuerpo.
     -- Impide que el aim aereo anterior acumule guiñada durante el estado suelo.
-    if motionState == "GROUNDED_IDLE" or motionState == "GROUNDED_RUN" then
+    if motionState == "GROUNDED_IDLE" or motionState == "GROUNDED_RUN"
+        or motionState == "GROUND_RECOVERY" then
         currentYawRate = 0
         currentTurnInput = 0
     else
