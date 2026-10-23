@@ -131,6 +131,7 @@ local function isGrounded()
     if not root then return false end
     local state = root:GetAttribute("Wyvern_MotionState")
     return state == "GROUNDED_IDLE" or state == "GROUNDED_RUN"
+        or state == "GROUND_RECOVERY"
 end
 
 local function syncInputToServer()
@@ -206,6 +207,7 @@ RunService.RenderStepped:Connect(function(dt)
 
     local motion = dtRoot:GetAttribute("Wyvern_MotionState") or "FLIGHT"
     local onGround = motion == "GROUNDED_IDLE" or motion == "GROUNDED_RUN"
+        or motion == "GROUND_RECOVERY"
     local canLand = dtRoot:GetAttribute("Wyvern_CanLand") == true
 
     -- Una indicacion contextual minima en el panel que YA existe.
