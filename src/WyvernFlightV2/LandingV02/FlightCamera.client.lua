@@ -50,6 +50,7 @@ local function isGroundedMode(root)
     if not root then return false end
     local state = root:GetAttribute("Wyvern_MotionState")
     return state == "GROUNDED_IDLE" or state == "GROUNDED_RUN"
+        or state == "GROUND_RECOVERY"
 end
 
 local function cycleDistance(phase, contact)
