@@ -348,6 +348,7 @@ flightInputRemote.OnServerEvent:Connect(function(player, inputPacket)
 		playerInputs.forward = math.clamp(tonumber(inputPacket.forward) or 0, -1, 1)
 		playerInputs.turn = math.clamp(tonumber(inputPacket.turn) or 0, -1, 1)
 		playerInputs.vertical = math.clamp(tonumber(inputPacket.vertical) or 0, -1, 1)
+        playerInputs.boost = (inputPacket.boost == true)
 		playerInputs.aimTurn = math.clamp(tonumber(inputPacket.aimTurn) or 0, -1, 1)
 		playerInputs.aimPitch = math.clamp(tonumber(inputPacket.aimPitch) or 0, -1, 1)
 		playerInputs.aimYawError = tonumber(inputPacket.aimYawError) or 0
