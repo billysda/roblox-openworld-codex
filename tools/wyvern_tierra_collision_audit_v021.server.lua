@@ -104,6 +104,7 @@ end
 local sum = 0
 local previousTilt = 0
 local previousOmega = 0
+local previousState = tostring(root:GetAttribute("Wyvern_MotionState") or "unknown")
 RunService.Heartbeat:Connect(function(dt)
     sum+=dt
     if sum<0.10 then return end
@@ -126,6 +127,14 @@ RunService.Heartbeat:Connect(function(dt)
         tostring(root:GetAttribute("Wyvern_GroundClearance")),
         v(root.AssemblyCenterOfMass)
     )
+    if state ~= previousState then
+        warn("[WYV-COL][STATE_TRANSITION] from="..previousState.." to="..state
+            .." "..base)
+        for _,touch in ipairs(recentTouches) do
+            warn("[WYV-COL][TRANSITION CONTACT] "..touch)
+        end
+        previousState=state
+    end
     if sudden then
         warn("[WYV-COL][TILT_SPIKE] "..base)
         for _,touch in ipairs(recentTouches) do warn("[WYV-COL][PREVIOUS TOUCH] "..touch) end
