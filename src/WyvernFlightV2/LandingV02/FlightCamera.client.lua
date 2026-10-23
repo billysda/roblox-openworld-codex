@@ -270,7 +270,16 @@ RunService.RenderStepped:Connect(function(dt)
         local running = dtRoot:GetAttribute("Wyvern_MotionState") == "GROUNDED_RUN"
         local runWeight = running and math.clamp(horizontalSpeed / nominalRunSpeed, 0, 1.2) or 0
 
+        -- Servidor autoritativo: prediccion local suavizada de fase Run.
+        -- Se evita el LocalScript que reproducia animaciones solo para este jugador.
         local phase = dtRoot:GetAttribute("Wyvern_RunPhaseLocal")
+        local stamp = dtRoot:GetAttribute("Wyvern_RunPhaseStamp")
+        local base = dtRoot:GetAttribute("Wyvern_RunPhaseBase")
+        local rate = dtRoot:GetAttribute("Wyvern_RunPhaseRate")
+        if type(stamp)=="number" and type(base)=="number"
+            and type(rate)=="number" and base>=0 then
+            phase = (base + math.clamp(Workspace:GetServerTimeNow()-stamp, 0, 0.4)*rate) % 1
+        end
         local pulse = 0.0
         local bob = 0.0
         if running and type(phase) == "number" and phase >= 0 then
