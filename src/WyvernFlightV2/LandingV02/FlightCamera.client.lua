@@ -216,9 +216,12 @@ end)
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
 	if gameProcessed then return end
 	if input.KeyCode == Enum.KeyCode.C then
-		customCameraEnabled = not customCameraEnabled
-		enforceScriptableCamera()
-	end
+        customCameraEnabled = not customCameraEnabled
+        enforceScriptableCamera()
+        if not customCameraEnabled then
+            setMouseLock(false)
+        end
+    end
 end)
 
 -- =============================================================================
@@ -255,6 +258,12 @@ RunService.RenderStepped:Connect(function(dt)
             -- La posicion se interpola desde el ultimo fotograma aereo.
             groundDistance = math.clamp(groundDistance, 23, 65)
         end
+
+        -- Atributo opcional del jugador para calibrar intensidad (0..1.5) en Play.
+        local groundShakeSetting = math.clamp(
+            tonumber(player:GetAttribute("WyvernGroundShakeStrength")) or GROUND_SHAKE_STRENGTH,
+            0, 1.5
+        )
 
         local horizontalSpeed = Vector3.new(velocity.X, 0, velocity.Z).Magnitude
         local nominalRunSpeed = dtRoot:GetAttribute("Wyvern_RunNominalSpeed") or 30
@@ -296,12 +305,12 @@ RunService.RenderStepped:Connect(function(dt)
         currentLookTarget = currentLookTarget:Lerp(followTarget, lookAlpha)
 
         -- Impacto por pisada + oscilacion leve, proporcional a la velocidad real.
-        local impact = pulse * runWeight * GROUND_SHAKE_STRENGTH
-        local bodyBob = bob * 0.055 * runWeight * GROUND_SHAKE_STRENGTH
+        local impact = pulse * runWeight * groundShakeSetting
+        local bodyBob = bob * 0.055 * runWeight * groundShakeSetting
         local cameraBase = CFrame.lookAt(currentCamPos, currentLookTarget)
         local subtleShake = CFrame.new(0, bodyBob - impact * 0.20, 0)
             * CFrame.Angles(impact * math.rad(0.50), 0,
-                math.sin((phase or 0) * math.pi * 2) * math.rad(0.22) * runWeight * GROUND_SHAKE_STRENGTH)
+                math.sin((phase or 0) * math.pi * 2) * math.rad(0.22) * runWeight * groundShakeSetting)
         camera.CFrame = cameraBase * subtleShake
 
         local targetGroundFOV = 73 + 5 * math.clamp(horizontalSpeed / nominalRunSpeed, 0, 1.2)
