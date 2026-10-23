@@ -104,6 +104,37 @@ function Ground:Sense()
     }
 end
 
+-- Barrido volumetrico delante del torso. Anticipa muros y escalones
+-- demasiado altos para impedir choques secos a 30-39 studs/s.
+-- No trata pendientes caminables como paredes; estas necesitan prueba visual.
+function Ground:ProbeObstacle(speed)
+    local forward = self.root.CFrame.LookVector
+    local planar = Vector3.new(forward.X, 0, forward.Z)
+    if planar.Magnitude < 0.001 or speed < 0.5 then
+        return { blocked = false, distance = math.huge }
+    end
+
+    local rayDir = planar.Unit
+    -- Distancia de frenado cinematico, valor conservador para primera prueba.
+    local brakingAcceleration = 62
+    local lookAhead = math.clamp(speed * speed / (2 * brakingAcceleration) + 4, 4, 24)
+    local origin = self.root.Position + Vector3.new(0, 0.35, 0)
+    local hit = Workspace:Spherecast(origin, 1.35, rayDir * lookAhead, self.params)
+
+    if not hit then
+        return { blocked = false, distance = math.huge, lookAhead = lookAhead }
+    end
+
+    local wallLike = hit.Normal.Y < 0.65
+    return {
+        blocked = wallLike,
+        distance = hit.Distance,
+        lookAhead = lookAhead,
+        normal = hit.Normal,
+        instance = hit.Instance,
+    }
+end
+
 function Ground:DisableSupport()
     self.support.Force = Vector3.zero
     self.support.Enabled = false
