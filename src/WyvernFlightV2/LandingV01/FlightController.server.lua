@@ -93,10 +93,15 @@ end
 -- =============================================================================
 local GroundV01 = require(script.Parent:WaitForChild("WyvernGroundV01"))
 local groundV01 = GroundV01.new(wyvern, dtRoot, rootAttachment)
+local GroundCollisionV022 = require(script.Parent:WaitForChild("GroundCollisionV022"))
+local collisionV022 = GroundCollisionV022.new(wyvern, dtRoot)
 local motionState = "FLIGHT" -- FLIGHT | APPROACH | LANDING | GROUNDED_IDLE | GROUNDED_RUN
 local groundMoveSpeed = 0
 local groundLostTime = 0
 local takeoffTime = 0
+local recoveryTime = 0
+local recoveryPlanarSpeed = 0
+local obstacleDistance = math.huge
 
 -- Calibracion inicial Run v0.2: 30 studs/s a 1.0x.
 -- La longitud de zancada real se revisara en Play con video.
@@ -169,7 +174,10 @@ local function resetToAerialSpawn()
     groundMoveSpeed = 0
     groundLostTime = 0
     takeoffTime = 0
+    recoveryTime = 0
+    recoveryPlanarSpeed = 0
     groundV01:DisableSupport()
+    collisionV022:SetActive(false)
     setGroundHorizontalDrive(false)
     setAssemblyAnchored(true)
 	
@@ -283,6 +291,52 @@ local function resolveSurfaceMotion(dt, sensor, defaultVelocity, defaultOrientat
             heading
     end
 
+    -- Baches/acantilados: perder apoyo NO significa despegue voluntario.
+    -- Primero se conserva la inercia terrestre y se permite caer por gravedad;
+    -- solo si la caida continua se reincorpora el vuelo con velocidad inicial real.
+    if motionState == "GROUND_RECOVERY" then
+        recoveryTime += dt
+        groundV01:DisableSupport()
+        setGroundHorizontalDrive(true) -- Y libre: gravedad real
+
+        local heading = CFrame.fromEulerAnglesYXZ(0, currentYaw, 0)
+        local forward = heading.LookVector
+        local supportAgain = sensor.valid and clearance <= 2.2
+            and math.abs(dtRoot.CFrame.UpVector:Dot(Vector3.yAxis)) > 0.65
+
+        if supportAgain then
+            motionState = "GROUNDED_IDLE"
+            groundLostTime = 0
+            groundMoveSpeed = playerInputs.forward > 0.15 and recoveryPlanarSpeed or 0
+            collisionV022:SetActive(true)
+            groundV01:ApplyGroundSupport(sensor)
+            return Vector3.new(forward.X * groundMoveSpeed, 0, forward.Z * groundMoveSpeed), heading
+        end
+
+        if recoveryTime >= 1.0 then
+            motionState = "FLIGHT"
+            groundLostTime = 0
+            currentSpeed = math.clamp(recoveryPlanarSpeed, 15, 40)
+            currentFlightDir = forward
+            currentPitch = 0
+            currentRoll = 0
+            currentYawRate = 0
+            currentTurnInput = 0
+            setGroundHorizontalDrive(false)
+            return Vector3.new(
+                forward.X * currentSpeed,
+                math.min(0, dtRoot.AssemblyLinearVelocity.Y),
+                forward.Z * currentSpeed
+            ), heading
+        end
+
+        return Vector3.new(
+            forward.X * recoveryPlanarSpeed,
+            0,  -- componente Y libre porque MaxAxesForce.Y=0
+            forward.Z * recoveryPlanarSpeed
+        ), heading
+    end
+
     if motionState == "GROUNDED_IDLE" or motionState == "GROUNDED_RUN" then
         -- Despegue voluntario desde tierra: Space, sin reiniciar el mapa.
         if playerInputs.vertical > 0.5 then
@@ -310,18 +364,32 @@ local function resolveSurfaceMotion(dt, sensor, defaultVelocity, defaultOrientat
 
         if groundLostTime >= 0.4 then
             -- Superficie perdida: recuperar control aereo, no teletransportar.
-            motionState = "FLIGHT"
-            groundMoveSpeed = 0
-            currentFlightDir = CFrame.fromEulerAnglesYXZ(0, currentYaw, 0).LookVector
+            motionState = "GROUND_RECOVERY"
+            recoveryTime = 0
+            local realVelocity = dtRoot.AssemblyLinearVelocity
+            recoveryPlanarSpeed = Vector3.new(realVelocity.X,0,realVelocity.Z).Magnitude
+            recoveryPlanarSpeed = math.clamp(recoveryPlanarSpeed, 0, GROUND_SPRINT_SPEED)
+            groundMoveSpeed = recoveryPlanarSpeed
             groundV01:DisableSupport()
-            setGroundHorizontalDrive(false)
-            return defaultVelocity, defaultOrientation
+            setGroundHorizontalDrive(true)
+            local heading = CFrame.fromEulerAnglesYXZ(0,currentYaw,0)
+            local forward = heading.LookVector
+            return Vector3.new(forward.X*recoveryPlanarSpeed,0,forward.Z*recoveryPlanarSpeed), heading
         end
 
         local movingForward = playerInputs.forward > 0.15
         local desiredSpeed = movingForward and
             (playerInputs.boost and GROUND_SPRINT_SPEED or GROUND_RUN_SPEED) or 0
         local approachRate = movingForward and 3.5 or 7.5
+        -- Predictive collision braking: no usar fuerza de 39 studs/s contra un muro.
+        -- El cast no toca el rig; reporta distancia hasta superficie solida.
+        local obstacle = groundV01:ProbeObstacle(math.max(groundMoveSpeed, 1))
+        obstacleDistance = obstacle.distance or math.huge
+        if obstacle.blocked then
+            local maxAllowed = math.sqrt(math.max(0, 2 * 62 * (obstacle.distance - 1.25)))
+            desiredSpeed = math.min(desiredSpeed, maxAllowed)
+            approachRate = 9
+        end
         groundMoveSpeed += (desiredSpeed - groundMoveSpeed) * (1 - math.exp(-approachRate * dt))
         motionState = (movingForward and groundMoveSpeed > 2 or groundMoveSpeed > 3)
             and "GROUNDED_RUN" or "GROUNDED_IDLE"
@@ -521,10 +589,14 @@ RunService.Heartbeat:Connect(function(dt)
     )
     linearVelocity.VectorVelocity = velocityCommand
     alignOrientation.CFrame = orientationCommand
+    collisionV022:SetActive(motionState == "GROUNDED_RUN"
+        or motionState == "GROUNDED_IDLE" or motionState == "GROUND_RECOVERY")
     dtRoot:SetAttribute("Wyvern_MotionState", motionState)
     dtRoot:SetAttribute("Wyvern_GroundClearance", sensedGround.valid and sensedGround.clearance or -999)
     dtRoot:SetAttribute("Wyvern_GroundProbeCount", sensedGround.hitCount)
     dtRoot:SetAttribute("Wyvern_GroundSpeed", groundMoveSpeed)
+    dtRoot:SetAttribute("Wyvern_ObstacleDistance",
+        obstacleDistance == math.huge and -1 or obstacleDistance)
     dtRoot:SetAttribute("Wyvern_RunNominalSpeed", GROUND_RUN_SPEED)
     dtRoot:SetAttribute("Wyvern_RunSprintSpeed", GROUND_SPRINT_SPEED)
     dtRoot:SetAttribute("Wyvern_CanLand", sensedGround.valid
