@@ -96,6 +96,15 @@ local groundV01 = GroundV01.new(wyvern, dtRoot, rootAttachment)
 local motionState = "FLIGHT" -- FLIGHT | APPROACH | LANDING | GROUNDED_IDLE | GROUNDED_RUN
 local groundMoveSpeed = 0
 local groundLostTime = 0
+local takeoffTime = 0
+
+-- Calibracion inicial Run v0.2: 30 studs/s a 1.0x.
+-- La longitud de zancada real se revisara en Play con video.
+local GROUND_RUN_SPEED = 30
+local GROUND_SPRINT_SPEED = 39
+local GROUND_TURN_RATE = math.rad(60)
+local TAKEOFF_VERTICAL_SPEED = 38
+local TAKEOFF_TRANSITION_DURATION = 0.55
 local usingGroundHorizontalDrive = false
 
 local function setGroundHorizontalDrive(enabled)
@@ -159,6 +168,7 @@ local function resetToAerialSpawn()
     motionState = "FLIGHT"
     groundMoveSpeed = 0
     groundLostTime = 0
+    takeoffTime = 0
     groundV01:DisableSupport()
     setGroundHorizontalDrive(false)
     setAssemblyAnchored(true)
@@ -250,7 +260,9 @@ local function resolveSurfaceMotion(dt, sensor, defaultVelocity, defaultOrientat
         if motionState == "LANDING" and clearance <= 0.35 and currentSpeed <= 18
             and math.abs(dtRoot.AssemblyLinearVelocity.Y) <= 8 then
             motionState = "GROUNDED_IDLE"
-            groundMoveSpeed = math.min(12, currentSpeed)
+            -- No trote accidental al tocar suelo si W no esta presionada.
+            groundMoveSpeed = playerInputs.forward > 0.15
+                and math.min(GROUND_RUN_SPEED, currentSpeed) or 0
             groundLostTime = 0
             setGroundHorizontalDrive(true)
         end
@@ -258,7 +270,38 @@ local function resolveSurfaceMotion(dt, sensor, defaultVelocity, defaultOrientat
         return velocity, orientation
     end
 
+    if motionState == "TAKEOFF" then
+        takeoffTime += dt
+        -- Ventana de transicion: evita que la gravedad y el sensor reactiven el apoyo.
+        -- Utiliza los mismos actuadores originales, sin impulso/teletransporte directo.
+        local heading = CFrame.fromEulerAnglesYXZ(0, currentYaw, 0)
+        local forward = heading.LookVector
+        if takeoffTime >= TAKEOFF_TRANSITION_DURATION then
+            motionState = "FLIGHT"
+        end
+        return Vector3.new(forward.X * currentSpeed, TAKEOFF_VERTICAL_SPEED, forward.Z * currentSpeed),
+            heading
+    end
+
     if motionState == "GROUNDED_IDLE" or motionState == "GROUNDED_RUN" then
+        -- Despegue voluntario desde tierra: Space, sin reiniciar el mapa.
+        if playerInputs.vertical > 0.5 then
+            motionState = "TAKEOFF"
+            takeoffTime = 0
+            currentPitch = 0
+            currentRoll = 0
+            currentTurnInput = 0
+            currentYawRate = 0
+            groundMoveSpeed = 0
+            currentFlightDir = CFrame.fromEulerAnglesYXZ(0, currentYaw, 0).LookVector
+            currentSpeed = math.max(18, dtRoot.AssemblyLinearVelocity.Magnitude)
+            currentVerticalVel = TAKEOFF_VERTICAL_SPEED
+            groundV01:DisableSupport()
+            setGroundHorizontalDrive(false)
+            local heading = CFrame.fromEulerAnglesYXZ(0, currentYaw, 0)
+            return currentFlightDir * currentSpeed + Vector3.new(0, TAKEOFF_VERTICAL_SPEED, 0),
+                heading
+        end
         if not sensor.valid or clearance > 3 then
             groundLostTime += dt
         else
@@ -276,13 +319,15 @@ local function resolveSurfaceMotion(dt, sensor, defaultVelocity, defaultOrientat
         end
 
         local movingForward = playerInputs.forward > 0.15
-        local desiredSpeed = movingForward and 16 or 0
-        local approachRate = movingForward and 6 or 9
+        local desiredSpeed = movingForward and
+            (playerInputs.boost and GROUND_SPRINT_SPEED or GROUND_RUN_SPEED) or 0
+        local approachRate = movingForward and 3.5 or 7.5
         groundMoveSpeed += (desiredSpeed - groundMoveSpeed) * (1 - math.exp(-approachRate * dt))
-        motionState = (movingForward or groundMoveSpeed > 1) and "GROUNDED_RUN" or "GROUNDED_IDLE"
+        motionState = (movingForward and groundMoveSpeed > 2 or groundMoveSpeed > 3)
+            and "GROUNDED_RUN" or "GROUNDED_IDLE"
 
         -- Giro terrestre: guiñada suave, sin alabeo de vuelo.
-        currentYaw = (currentYaw - playerInputs.turn * math.rad(35) * dt) % (2 * math.pi)
+        currentYaw = (currentYaw - playerInputs.turn * GROUND_TURN_RATE * dt) % (2 * math.pi)
         currentPitch = 0
         currentRoll = 0
         local orientation = CFrame.fromEulerAnglesYXZ(0, currentYaw, 0)
@@ -427,8 +472,14 @@ RunService.Heartbeat:Connect(function(dt)
 	local yawSmoothAlpha = 1.0 - math.exp(-WyvernFlightConfig.YawSmoothing * dt)
 	currentYawRate = currentYawRate + (targetYawRate - currentYawRate) * yawSmoothAlpha
 
-	-- Acumulación continua del nuevo heading (al soltar A/D, currentYaw conserva el nuevo rumbo)
-	currentYaw = (currentYaw + currentYawRate * dt) % (2 * math.pi)
+	-- El mouse NO dirige al dragon en tierra: solo A/D gira el cuerpo.
+    -- Impide que el aim aereo anterior acumule guiñada durante el estado suelo.
+    if motionState == "GROUNDED_IDLE" or motionState == "GROUNDED_RUN" then
+        currentYawRate = 0
+        currentTurnInput = 0
+    else
+        currentYaw = (currentYaw + currentYawRate * dt) % (2 * math.pi)
+    end
 
 	-- 6. Dinámica de Cabeceo (Pitch) y Movimiento Vertical (Manual + Aim)
 	local targetPitch
@@ -473,6 +524,10 @@ RunService.Heartbeat:Connect(function(dt)
     dtRoot:SetAttribute("Wyvern_GroundClearance", sensedGround.valid and sensedGround.clearance or -999)
     dtRoot:SetAttribute("Wyvern_GroundProbeCount", sensedGround.hitCount)
     dtRoot:SetAttribute("Wyvern_GroundSpeed", groundMoveSpeed)
+    dtRoot:SetAttribute("Wyvern_RunNominalSpeed", GROUND_RUN_SPEED)
+    dtRoot:SetAttribute("Wyvern_RunSprintSpeed", GROUND_SPRINT_SPEED)
+    dtRoot:SetAttribute("Wyvern_CanLand", sensedGround.valid
+        and sensedGround.clearance > 0.25 and sensedGround.clearance <= 30)
 
 	-- 9. Sincronización de Atributos de Telemetría (Sensor de Estado Fase R3 / R3.1 / R4)
 	local headingDeg = math.deg(currentYaw)
