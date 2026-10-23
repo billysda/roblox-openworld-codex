@@ -18,12 +18,14 @@ Ground.CONFIG = {
     MaxSupportAcceleration = 2.5 * Workspace.Gravity,
 }
 
+-- Valores medidos por Antigravity en el rig del Gran Wyvern de Tierra.
+-- X/Z locales tras realinear DT_Root. No sirven para otros dragones.
 local PROBES = {
     Center = Vector3.new(0, 0, 0),
-    Front = Vector3.new(0, 0, -3),  -- DT_Root corregido: -Z = cabeza
-    Rear = Vector3.new(0, 0, 3),
-    Left = Vector3.new(-2.5, 0, 0),
-    Right = Vector3.new(2.5, 0, 0),
+    FrontLeft = Vector3.new(-6.5, 0, -11.5),
+    FrontRight = Vector3.new(6.5, 0, -11.5),
+    RearLeft = Vector3.new(-2.5, 0, 10.5),
+    RearRight = Vector3.new(2.5, 0, 10.5),
 }
 
 function Ground.new(model, rootPart, attachment)
@@ -80,8 +82,20 @@ function Ground:Sense()
 
     local normal = valid > 0 and (averagedNormal / valid).Unit or Vector3.yAxis
     local clearance = rootPosition.Y - center.Position.Y - Ground.CONFIG.RestRootHeight
+    -- No aceptar una cornisa que solo cubra el torso:
+    -- debe existir apoyo en centro, al menos un miembro delantero y uno trasero.
+    local frontSupported = hits.FrontLeft ~= nil or hits.FrontRight ~= nil
+    local rearSupported = hits.RearLeft ~= nil or hits.RearRight ~= nil
+    local minGroundY, maxGroundY = center.Position.Y, center.Position.Y
+    for _, hit in pairs(hits) do
+        minGroundY = math.min(minGroundY, hit.Position.Y)
+        maxGroundY = math.max(maxGroundY, hit.Position.Y)
+    end
+    local groundSpread = maxGroundY - minGroundY
     return {
-        valid = valid >= 3 and normal.Y >= Ground.CONFIG.MaximumSlopeNormalY,
+        valid = valid >= 3 and frontSupported and rearSupported and groundSpread <= 2.5
+            and normal.Y >= Ground.CONFIG.MaximumSlopeNormalY,
+        heightSpread = groundSpread,
         clearance = clearance,  -- 0 significa altura de apoyo calibrada
         groundY = center.Position.Y,
         normal = normal,
