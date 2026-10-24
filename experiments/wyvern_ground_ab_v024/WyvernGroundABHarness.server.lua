@@ -12,6 +12,20 @@ if not RunService:IsStudio() or script:GetAttribute("ABTestEnabled") ~= true the
     return
 end
 
+-- Stop if production camera/Input would fight the isolated test pilot.
+local StarterPlayer=game:GetService("StarterPlayer")
+local playerScripts=StarterPlayer:FindFirstChild("StarterPlayerScripts")
+local liveInputs=playerScripts and playerScripts:FindFirstChild("WyvernFlightV2")
+if liveInputs then
+    for _,name in ipairs({"FlightCamera","Input"}) do
+        local controller=liveInputs:FindFirstChild(name)
+        if controller and controller:IsA("LocalScript") and not controller.Disabled then
+            error("[WYV-AB] Disable StarterPlayerScripts.WyvernFlightV2."..name
+                .." IN THE DISPOSABLE PLACE COPY before running A/B; never production")
+        end
+    end
+end
+
 local driveMode = tostring(script:GetAttribute("DriveMode") or "GroundController")
 assert(driveMode == "GroundController" or driveMode == "LegacyXZ",
     "DriveMode must be GroundController or LegacyXZ")
