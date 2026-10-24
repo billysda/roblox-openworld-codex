@@ -15,7 +15,8 @@ Ground.CONFIG = {
     RestRootHeight = 1.77,
     NearGroundThreshold = 3.2,
     MaxRecoveryReferenceHeight = 6.0,
-    MaxRayDistance = 70,
+    MaxRayDistance = 110,
+    RayOriginAboveRoot = 18, -- off-center paws on 30-deg uphill may rise >6 studs
     MaximumSlopeNormalY = math.cos(math.rad(30)),
     SupportKp = 38,  -- aceleracion por stud de error vertical
     SupportKd = 11,  -- amortiguacion de velocidad vertical
@@ -76,7 +77,8 @@ function Ground:Sense()
         local transformed = cf:PointToWorldSpace(offset)
         -- Los puntos de muestreo siempre salen desde la misma altura Y,
         -- incluso cuando el dragon hace pitch o roll.
-        local rayOrigin = Vector3.new(transformed.X, rootPosition.Y + 4, transformed.Z)
+        local rayOrigin = Vector3.new(transformed.X,
+            rootPosition.Y + Ground.CONFIG.RayOriginAboveRoot, transformed.Z)
         local hit = Workspace:Raycast(rayOrigin, Vector3.new(0, -Ground.CONFIG.MaxRayDistance, 0), self.params)
         if hit and hit.Normal.Y >= Ground.CONFIG.MaximumSlopeNormalY then
             hits[key] = hit
