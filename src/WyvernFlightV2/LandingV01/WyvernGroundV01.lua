@@ -10,7 +10,11 @@ Ground.__index = Ground
 
 Ground.CONFIG = {
     -- Calibracion inicial tomada del apoyo Idle 2; ajustar con pruebas Play.
-    RestRootHeight = 1.798,
+    -- Calibrated from physical sphere 3 studs at local Y=-0.27:
+    -- root bottom clearance at contact = 1.50 + 0.27 = 1.77 studs.
+    RestRootHeight = 1.77,
+    NearGroundThreshold = 3.2,
+    MaxRecoveryReferenceHeight = 6.0,
     MaxRayDistance = 70,
     MaximumSlopeNormalY = math.cos(math.rad(30)),
     SupportKp = 38,  -- aceleracion por stud de error vertical
@@ -61,6 +65,10 @@ function Ground:Sense()
     local hits = {}
     local valid = 0
     local averagedNormal = Vector3.zero
+    local nearCount = 0
+    local nearestClearance = math.huge
+    local nearbyNormal = Vector3.zero
+    local nearbyY = nil
 
     for key, offset in pairs(PROBES) do
         local transformed = cf:PointToWorldSpace(offset)
@@ -72,12 +80,32 @@ function Ground:Sense()
             hits[key] = hit
             valid += 1
             averagedNormal += hit.Normal
+            -- Count nearby physical ground independently of strict full-footprint
+            -- landing validation, so crests/rocks do not trigger airborne mode.
+            local gap = rootPosition.Y - hit.Position.Y - Ground.CONFIG.RestRootHeight
+            if gap >= -1.75 and gap <= Ground.CONFIG.MaxRecoveryReferenceHeight then
+                if gap <= Ground.CONFIG.NearGroundThreshold then
+                    nearCount += 1
+                    nearbyNormal += hit.Normal
+                end
+                if math.abs(gap) < math.abs(nearestClearance) then
+                    nearestClearance = gap
+                    nearbyY = hit.Position.Y
+                end
+            end
         end
     end
 
     local center = hits.Center
     if not center then
-        return { valid = false, clearance = math.huge, hitCount = valid, normal = Vector3.yAxis }
+        return {
+            valid = false, clearance = math.huge,
+            nearGround = nearCount > 0,
+            nearHitCount = nearCount, nearestClearance = nearestClearance,
+            nearNormal = nearCount > 0 and nearbyNormal.Unit or Vector3.yAxis,
+            nearestGroundY = nearbyY,
+            hitCount = valid, normal = Vector3.yAxis,
+        }
     end
 
     local normal = valid > 0 and (averagedNormal / valid).Unit or Vector3.yAxis
@@ -108,6 +136,11 @@ function Ground:Sense()
             and planeNormal.Y >= Ground.CONFIG.MaximumSlopeNormalY,
         heightSpread = groundSpread,
         planeDeviation = maxPlaneDeviation,
+        nearGround = nearCount > 0,
+        nearHitCount = nearCount,
+        nearestClearance = nearestClearance,
+        nearNormal = nearCount > 0 and nearbyNormal.Unit or center.Normal,
+        nearestGroundY = nearbyY,
         clearance = clearance,  -- 0 significa altura de apoyo calibrada
         groundY = center.Position.Y,
         normal = normal,
@@ -130,8 +163,8 @@ function Ground:ProbeObstacle(speed)
     -- Distancia de frenado cinematico, valor conservador para primera prueba.
     local brakingAcceleration = 62
     local lookAhead = math.clamp(speed * speed / (2 * brakingAcceleration) + 4, 4, 24)
-    local origin = self.root.Position + Vector3.new(0, 0.35, 0)
-    local hit = Workspace:Spherecast(origin, 1.35, rayDir * lookAhead, self.params)
+    local origin = self.root.CFrame:PointToWorldSpace(Vector3.new(0, -0.27, 0))
+    local hit = Workspace:Spherecast(origin, 1.5, rayDir * lookAhead, self.params)
 
     if not hit then
         return { blocked = false, distance = math.huge, lookAhead = lookAhead }
@@ -152,30 +185,11 @@ function Ground:DisableSupport()
     self.support.Enabled = false
 end
 
-function Ground:ApplyGroundSupport(sample)
-    if not sample or not sample.valid then
-        self:DisableSupport()
-        return
-    end
-
-    local mass = self.root.AssemblyMass
-    if mass <= 0 then
-        self:DisableSupport()
-        return
-    end
-
-    -- Al cambiar a tierra, el controlador principal deshabilita la fuerza
-    -- VERTICAL de LinearVelocity. Esta VectorForce solo compensa gravedad y
-    -- regula la altura suavemente. Sin anclaje ni teletransporte por frame.
-    local heightError = -sample.clearance
-    local velocityY = self.root.AssemblyLinearVelocity.Y
-    local accel = Workspace.Gravity
-        + Ground.CONFIG.SupportKp * heightError
-        - Ground.CONFIG.SupportKd * velocityY
-    accel = math.clamp(accel, 0, Ground.CONFIG.MaxSupportAcceleration)
-
-    self.support.Force = Vector3.new(0, mass * accel, 0)
-    self.support.Enabled = true
+-- In v0.2.3 the sphere's real contact with Terrain / BaseParts supports
+-- the assembly. The v0.2.2 PD levitation force actively prevented physical
+-- contact, creating visible hovering and unreliable response near slopes.
+function Ground:ApplyGroundSupport(_sample)
+    self:DisableSupport()
 end
 
 return Ground
