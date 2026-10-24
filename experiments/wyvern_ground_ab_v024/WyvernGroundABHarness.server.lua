@@ -225,6 +225,67 @@ else
     ao.Parent=root
 end
 
+-- Optional Studio-only animation playback on the clone. The original
+-- wyvern's FlightAnimationServerV022 remains untouched and targets wyvernfbx.
+local animator=clone:FindFirstChild("AnimationController")
+animator=animator and animator:FindFirstChildOfClass("Animator")
+local testTracks={}
+if animator then
+    local ServerStorage=game:GetService("ServerStorage")
+    local KeyframeSequenceProvider=game:GetService("KeyframeSequenceProvider")
+    local originalSequences=ServerStorage:FindFirstChild("RBX_ANIMSAVES")
+    originalSequences=originalSequences and originalSequences:FindFirstChild("wyvernfbx")
+    local animations=clone:FindFirstChild("Animations")
+    local function tryLoad(name,sequenceName,priority)
+        local id=nil
+        local obj=animations and animations:FindFirstChild(name)
+        if obj and obj:IsA("Animation") and obj.AnimationId:match("^rbxassetid://%d+$") then
+            id=obj.AnimationId
+        end
+        if not id then
+            local seq=originalSequences and originalSequences:FindFirstChild(sequenceName)
+            if seq and seq:IsA("KeyframeSequence") then
+                local ok, result=pcall(function()
+                    return KeyframeSequenceProvider:RegisterKeyframeSequence(seq)
+                end)
+                if ok then id="rbxassetid://"..result end
+            end
+        end
+        if not id then
+            warn("[WYV-AB] No "..name.." asset on clone; physics still testable")
+            return
+        end
+        local a=Instance.new("Animation")
+        a.AnimationId=id
+        a.Name="AB_"..name
+        local ok,track=pcall(function()return animator:LoadAnimation(a)end)
+        if ok then
+            track.Looped=true
+            track.Priority=priority
+            testTracks[name]=track
+        else
+            warn("[WYV-AB] Could not load "..name..": "..tostring(track))
+        end
+    end
+    tryLoad("Idle2","wyvern_idle2_from_hoy_Scene",Enum.AnimationPriority.Idle)
+    tryLoad("Run","wyvern_run_from_hoy_Scene",Enum.AnimationPriority.Movement)
+end
+local currentTrack=nil
+local function updateAnimation(walking,speed)
+    local target=walking and "Run" or "Idle2"
+    if target~=currentTrack then
+        if currentTrack and testTracks[currentTrack] then
+            testTracks[currentTrack]:Stop(0.20)
+        end
+        local track=testTracks[target]
+        if track then track:Play(0.2) end
+        currentTrack=target
+    end
+    if target=="Run" and testTracks.Run then
+        testTracks.Run:AdjustSpeed(math.clamp(speed/30,0.25,1.3))
+    end
+end
+
 local nextMessage=0
 root:SetAttribute("WyvernAB_Mode",driveMode)
 print("[WYV-AB][READY] mode=",driveMode,"assemblyMass=",root.AssemblyMass,
@@ -234,6 +295,7 @@ RunService.Heartbeat:Connect(function(dt)
     facingYaw=(facingYaw-turn*math.rad(60)*dt)%(2*math.pi)
     local forward=CFrame.fromEulerAnglesYXZ(0,facingYaw,0).LookVector
     local goalSpeed=desiredW and (desiredBoost and 39 or 30) or 0
+    updateAnimation(desiredW,goalSpeed)
     if manager then
         manager.BaseMoveSpeed=goalSpeed
         manager.FacingDirection=forward
