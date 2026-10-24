@@ -111,6 +111,27 @@ local GROUND_TURN_RATE = math.rad(60)
 local TAKEOFF_VERTICAL_SPEED = 38
 local TAKEOFF_TRANSITION_DURATION = 0.55
 local usingGroundHorizontalDrive = false
+local terrainUpFiltered = Vector3.yAxis
+local MAX_GROUND_TILT_RAD = math.rad(12)  -- orientation comfort, not slope limit
+local GROUND_FORCE_PER_MASS = 90           -- force in N per Roblox mass
+local GROUND_LOSS_GRACE = 0.65
+local GROUND_RECOVERY_SNAP_CLEARANCE = 2.5
+
+local function groundAttitude(yaw, sample, dt)
+    -- Sample nearby terrain separately from strict full-footprint landing.
+    -- Smoothed tilt follows crests without rotating the body abruptly.
+    local targetUp = sample.nearGround and sample.nearNormal or Vector3.yAxis
+    terrainUpFiltered = terrainUpFiltered:Lerp(targetUp, math.clamp(3.5*dt, 0, 1)).Unit
+    local angle = math.acos(math.clamp(terrainUpFiltered.Y, -1, 1))
+    local up = terrainUpFiltered
+    if angle > MAX_GROUND_TILT_RAD then
+        up = Vector3.yAxis:Lerp(terrainUpFiltered, MAX_GROUND_TILT_RAD / angle).Unit
+    end
+    local flatForward = CFrame.fromEulerAnglesYXZ(0, yaw, 0).LookVector
+    local tangent = flatForward - up * flatForward:Dot(up)
+    if tangent.Magnitude < 0.1 then tangent = flatForward end
+    return CFrame.lookAt(Vector3.zero, tangent.Unit, up)
+end
 
 local function setGroundHorizontalDrive(enabled)
     if usingGroundHorizontalDrive == enabled then return end
@@ -119,7 +140,9 @@ local function setGroundHorizontalDrive(enabled)
     if enabled then
         -- La gravedad y GroundSupport gobiernan Y, LinearVelocity solamente XZ.
         linearVelocity.ForceLimitMode = Enum.ForceLimitMode.PerAxis
-        linearVelocity.MaxAxesForce = Vector3.new(1e6, 0, 1e6)
+        local mass = math.max(1, dtRoot.AssemblyMass)
+        local force = math.clamp(mass * GROUND_FORCE_PER_MASS, 350, 250000)
+        linearVelocity.MaxAxesForce = Vector3.new(force, 0, force)
     else
         -- R4.1/R4.2 conserva su actuacion vectorial completa en vuelo.
         linearVelocity.ForceLimitMode = Enum.ForceLimitMode.Magnitude
@@ -176,6 +199,7 @@ local function resetToAerialSpawn()
     takeoffTime = 0
     recoveryTime = 0
     recoveryPlanarSpeed = 0
+    terrainUpFiltered = Vector3.yAxis
     groundV01:DisableSupport()
     collisionV022:SetActive(false)
     setGroundHorizontalDrive(false)
@@ -275,6 +299,12 @@ local function resolveSurfaceMotion(dt, sensor, defaultVelocity, defaultOrientat
             setGroundHorizontalDrive(true)
         end
 
+        -- Near the floor, let gravity and the ALWAYS-ACTIVE physical collider
+        -- handle vertical touchdown; stop LinearVelocity fighting the ground.
+        if motionState == "LANDING" and clearance <= 0.75 then
+            setGroundHorizontalDrive(true)
+            velocity = Vector3.new(velocity.X, 0, velocity.Z)
+        end
         return velocity, orientation
     end
 
@@ -291,50 +321,47 @@ local function resolveSurfaceMotion(dt, sensor, defaultVelocity, defaultOrientat
             heading
     end
 
-    -- Baches/acantilados: perder apoyo NO significa despegue voluntario.
-    -- Primero se conserva la inercia terrestre y se permite caer por gravedad;
-    -- solo si la caida continua se reincorpora el vuelo con velocidad inicial real.
+    -- Ground continuity: keep physical collider always active. On a cliff,
+    -- keep gravitational FALL; only SPACE may initiate controlled TAKEOFF.
     if motionState == "GROUND_RECOVERY" then
         recoveryTime += dt
         groundV01:DisableSupport()
-        setGroundHorizontalDrive(true) -- Y libre: gravedad real
+        setGroundHorizontalDrive(true) -- XZ only; gravity controls Y
 
-        local heading = CFrame.fromEulerAnglesYXZ(0, currentYaw, 0)
-        local forward = heading.LookVector
-        local supportAgain = sensor.valid and clearance <= 2.2
-            and math.abs(dtRoot.CFrame.UpVector:Dot(Vector3.yAxis)) > 0.65
+        local orientation = groundAttitude(currentYaw, sensor, dt)
+        local flatForward = CFrame.fromEulerAnglesYXZ(0, currentYaw, 0).LookVector
+        local nearNow = sensor.nearGround
+            and math.abs(sensor.nearestClearance or math.huge) <= GROUND_RECOVERY_SNAP_CLEARANCE
+        local verticalSpeed = dtRoot.AssemblyLinearVelocity.Y
 
-        if supportAgain then
-            motionState = "GROUNDED_IDLE"
-            groundLostTime = 0
-            groundMoveSpeed = playerInputs.forward > 0.15 and recoveryPlanarSpeed or 0
-            collisionV022:SetActive(true)
-            groundV01:ApplyGroundSupport(sensor)
-            return Vector3.new(forward.X * groundMoveSpeed, 0, forward.Z * groundMoveSpeed), heading
-        end
-
-        if recoveryTime >= 1.0 then
-            motionState = "FLIGHT"
-            groundLostTime = 0
-            currentSpeed = math.clamp(recoveryPlanarSpeed, 15, 40)
-            currentFlightDir = forward
+        if playerInputs.vertical > 0.5 then
+            motionState = "TAKEOFF"
+            takeoffTime = 0
+            currentSpeed = math.max(18, recoveryPlanarSpeed)
             currentPitch = 0
             currentRoll = 0
             currentYawRate = 0
             currentTurnInput = 0
+            currentFlightDir = flatForward
+            currentVerticalVel = TAKEOFF_VERTICAL_SPEED
             setGroundHorizontalDrive(false)
-            return Vector3.new(
-                forward.X * currentSpeed,
-                math.min(0, dtRoot.AssemblyLinearVelocity.Y),
-                forward.Z * currentSpeed
-            ), heading
+            return flatForward * currentSpeed + Vector3.new(0, TAKEOFF_VERTICAL_SPEED, 0),
+                CFrame.fromEulerAnglesYXZ(0, currentYaw, 0)
         end
 
-        return Vector3.new(
-            forward.X * recoveryPlanarSpeed,
-            0,  -- componente Y libre porque MaxAxesForce.Y=0
-            forward.Z * recoveryPlanarSpeed
-        ), heading
+        -- Do not require five probe points to agree on every crest.
+        if nearNow and math.abs(verticalSpeed) < 13 then
+            motionState = "GROUNDED_IDLE"
+            groundLostTime = 0
+            groundMoveSpeed = playerInputs.forward > 0.15 and recoveryPlanarSpeed or 0
+            return Vector3.new(flatForward.X * groundMoveSpeed, 0,
+                flatForward.Z * groundMoveSpeed), orientation
+        end
+
+        -- Never switch to FLIGHT because a timer elapsed. Physical gravity
+        -- continues acting on the body until genuine support or player Space.
+        return Vector3.new(flatForward.X * recoveryPlanarSpeed, 0,
+            flatForward.Z * recoveryPlanarSpeed), orientation
     end
 
     if motionState == "GROUNDED_IDLE" or motionState == "GROUNDED_RUN" then
@@ -356,13 +383,15 @@ local function resolveSurfaceMotion(dt, sensor, defaultVelocity, defaultOrientat
             return currentFlightDir * currentSpeed + Vector3.new(0, TAKEOFF_VERTICAL_SPEED, 0),
                 heading
         end
-        if not sensor.valid or clearance > 3 then
+        local nearSupport = sensor.nearGround
+            and (sensor.nearestClearance or math.huge) <= 3.2
+        if not nearSupport then
             groundLostTime += dt
         else
             groundLostTime = 0
         end
 
-        if groundLostTime >= 0.4 then
+        if groundLostTime >= GROUND_LOSS_GRACE then
             -- Superficie perdida: recuperar control aereo, no teletransportar.
             motionState = "GROUND_RECOVERY"
             recoveryTime = 0
@@ -398,9 +427,9 @@ local function resolveSurfaceMotion(dt, sensor, defaultVelocity, defaultOrientat
         currentYaw = (currentYaw - playerInputs.turn * GROUND_TURN_RATE * dt) % (2 * math.pi)
         currentPitch = 0
         currentRoll = 0
-        local orientation = CFrame.fromEulerAnglesYXZ(0, currentYaw, 0)
-        local forward = orientation.LookVector
-        groundV01:ApplyGroundSupport(sensor)
+        local orientation = groundAttitude(currentYaw, sensor, dt)
+        local forward = CFrame.fromEulerAnglesYXZ(0, currentYaw, 0).LookVector
+        groundV01:ApplyGroundSupport(sensor) -- disabled: real contact, no levitation
         setGroundHorizontalDrive(true)
         return Vector3.new(forward.X * groundMoveSpeed, 0, forward.Z * groundMoveSpeed), orientation
     end
@@ -595,6 +624,13 @@ RunService.Heartbeat:Connect(function(dt)
     dtRoot:SetAttribute("Wyvern_MotionState", motionState)
     dtRoot:SetAttribute("Wyvern_GroundClearance", sensedGround.valid and sensedGround.clearance or -999)
     dtRoot:SetAttribute("Wyvern_GroundProbeCount", sensedGround.hitCount)
+    dtRoot:SetAttribute("Wyvern_NearGround", sensedGround.nearGround == true)
+    dtRoot:SetAttribute("Wyvern_NearHitCount", sensedGround.nearHitCount or 0)
+    dtRoot:SetAttribute("Wyvern_NearestGroundClearance",
+        sensedGround.nearestClearance ~= math.huge and sensedGround.nearestClearance or -999)
+    dtRoot:SetAttribute("Wyvern_AlwaysCollidable", collisionV022.proxy.CanCollide)
+    dtRoot:SetAttribute("Wyvern_PhysicalSupportOnly", true)
+    dtRoot:SetAttribute("Wyvern_GroundRecoveryTime", recoveryTime)
     dtRoot:SetAttribute("Wyvern_GroundSpeed", groundMoveSpeed)
     dtRoot:SetAttribute("Wyvern_ObstacleDistance",
         obstacleDistance == math.huge and -1 or obstacleDistance)
