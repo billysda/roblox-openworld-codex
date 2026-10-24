@@ -25,7 +25,7 @@ En la v0.2.2:
 
 2. `src/WyvernFlightV2/LandingV01/WyvernGroundV01.lua`
    - `RestRootHeight=1.77` para concordar con el cuerpo físico. `VectorForce` siempre inactivo, sin sustentación artificial; gravedad+suelo deben sostener el dragón.
-   - Raycasts conservan condición estricta `valid` para identificar superficie **aterrizable**.
+   - Raycasts conservan condición estricta `valid` para identificar superficie **aterrizable**. Los orígenes ahora parten a +18 studs sobre DT_Root y disparan hacia abajo 110 studs, para no nacer dentro de la cuesta delante de las patas en pendientes ascendentes.
    - Expone `nearGround`, `nearHitCount`, `nearestClearance`, `nearNormal` aunque el suelo NO sea válido para aterrizar. Se admite contacto próximo aislado sobre crestas, sin exigir siempre apoyo delantero y trasero.
    - `Spherecast` anticipatorio ajusta centro/radio al proxy real (local Y=-0.27, radio 1.5).
 
