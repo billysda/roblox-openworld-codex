@@ -56,6 +56,8 @@ function Ground.new(model, rootPart, attachment)
         support.Parent = rootPart
     end
     self.support = support
+    -- A reused VectorForce must not retain v0.2.2 levitation on restart.
+    self:DisableSupport()
     return self
 end
 
