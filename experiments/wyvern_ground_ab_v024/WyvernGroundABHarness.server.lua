@@ -248,7 +248,7 @@ if animator then
                 local ok, result=pcall(function()
                     return KeyframeSequenceProvider:RegisterKeyframeSequence(seq)
                 end)
-                if ok then id="rbxassetid://"..result end
+                if ok and type(result)=="string" then id=result end -- provider returns complete ContentId
             end
         end
         if not id then
